@@ -1,9 +1,8 @@
-$: << "."
 require "numo/linalg/use/openblas"
 require "torch-rb"
 require "torchtext"
-require "transformer"
-require "vocab"
+require_relative "transformer"
+require_relative "vocab"
 require "byebug"
 
 def clip_grad_norm(parameters, max_norm:, norm_type:2)
