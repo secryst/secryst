@@ -21,7 +21,7 @@ def clip_grad_norm(parameters, max_norm:, norm_type:2)
   clip_coef = max_norm / (total_norm + 1e-6)
   # puts clip_coef
   if clip_coef < 1
-    parameters.each {|p| p.grad.detach * clip_coef}
+    parameters.each {|p| p.grad = p.grad.detach * clip_coef}
   end
   # puts total_norm
   return total_norm
