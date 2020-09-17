@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ankane/torch.rb.git
-  revision: b9d8818b2312cc788fd1d724b268ce418f59f577
+  revision: a11ef2b3d3e967a54c95fa5d0b58de1aacc8fea8
   specs:
     torch-rb (0.3.5)
       rice (>= 2.2)
@@ -54,10 +54,11 @@ PLATFORMS
 DEPENDENCIES
   byebug
   numo
+  numo-linalg
   tensor_stream
   tensor_stream-opencl
   torch-rb!
   torchtext
 
 BUNDLED WITH
-   2.1.2
+   2.1.4

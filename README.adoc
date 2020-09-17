@@ -1,0 +1,82 @@
+= Secryst
+
+== Purpose
+
+A seq2seq transformer suited for transliteration. Written in Ruby.
+
+Secryst was originally built for the
+https://www.interscript.com[Interscript project]
+(https://github.com/interscript/interscript[at GitHub]).
+
+== Prerequisites
+
+* `libtorch` (1.6.0)
+* `fftw`
+* `gsl`
+* `lapack`
+* `openblas`
+
+On macOS:
+
+[source,sh]
+----
+$ brew install libtorch gsl lapack openblas
+$ bundle config build.numo-linalg \
+  --with-openblas-dir=/usr/local/opt/openblas \
+  --with-lapack-lib=/usr/local/opt/lapack
+$ bundle install
+----
+
+////
+You may need to do this to link the brew-installed `lapack` and `openblas`:
+
+----
+For compilers to find lapack you may need to set:
+  export LDFLAGS="-L/usr/local/opt/lapack/lib"
+  export CPPFLAGS="-I/usr/local/opt/lapack/include"
+
+For pkg-config to find lapack you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/lapack/lib/pkgconfig"
+
+For compilers to find openblas you may need to set:
+  export LDFLAGS="-L/usr/local/opt/openblas/lib"
+  export CPPFLAGS="-I/usr/local/opt/openblas/include"
+
+For pkg-config to find openblas you may need to set:
+  export PKG_CONFIG_PATH="/usr/local/opt/openblas/lib/pkgconfig"
+----
+////
+
+(macOS)
+If you mistakenly installed `numo-linalg` without the above configuration
+options, please reinstall it with these steps:
+
+[source,sh]
+----
+$ bundle config build.numo-linalg \
+  --with-openblas-dir=/usr/local/opt/openblas \
+  --with-lapack-lib=/usr/local/opt/lapack
+$ bundle exec gem uninstall numo-linalg
+# This step will automatically install numo-linalg with the right config
+$ bundle
+----
+
+
+== References
+
+Secryst is built on the transformer model with architecture
+based on:
+
+* Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit,
+  Llion Jones, Aidan N Gomez, Lukasz Kaiser, and Illia Polosukhin.
+  Attention is all you need. 2017. In:
+  _Advances in Neural Information Processing Systems_, pages 6000-6010.
+
+
+== Origin of name
+
+Scrying is the practice of peering into a crystal sphere for fortune telling.
+The purpose of `seq2seq` is nearly like scrying: looking into a crystal sphere
+for some machine-learning magic to happen.
+
+"`Secryst`" comes from the combination of "`seq2seq`" + "`crystal`" + "`scrying`".

@@ -1,4 +1,4 @@
-require "functional"
+require_relative "functional"
 
 module Torch
   module NN

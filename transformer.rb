@@ -1,4 +1,4 @@
-require "multihead_attention"
+require_relative "multihead_attention"
 
 module Torch
   module NN
