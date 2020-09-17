@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "numo/linalg/use/openblas"
 require "torch-rb"
 require "torchtext"
@@ -44,7 +46,6 @@ num_decoder_layers = 6
 dim_feedforward = 2048
 dropout = 0.1
 activation = 'relu'
-
 
 data_kh = File.readlines('data_kh.csv', chomp: true)
 data_rom = File.readlines('data_rom.csv', chomp: true)
@@ -126,18 +127,18 @@ lr = 5.0 # learning rate
 optimizer = Torch::Optim::SGD.new(model.parameters, lr: lr)
 scheduler = Torch::Optim::LRScheduler::StepLR.new(optimizer, step_size: 1, gamma: 0.9)
 
-model.train()
+model.train
 total_loss = 0.0
 start_time = Time.now
 ntokens = target_vocab.length
 training_data = input_data.zip(target_data)
-i = 0
-training_data.each_slice(batch_size) do |batch|
+
+training_data.each_slice(batch_size).with_index do |batch, i|
   # unzip
   inputs, targets = batch.transpose
   inputs = Torch.tensor(inputs).t
   targets = Torch.tensor(targets).t
-  optimizer.zero_grad()
+  optimizer.zero_grad
   output = model.call(inputs, targets)
   loss = criterion.call(output.view(-1, ntokens), targets.t.contiguous.view(-1))
   # output.view(-1, ntokens).map(&:to_a).each {|l| puts l.inspect}
@@ -145,25 +146,25 @@ training_data.each_slice(batch_size) do |batch|
   # puts targets.t.contiguous.view(-1).to_a.inspect
   # exit
   # puts output.view(-1, ntokens).map(&:to_a)[-1].inspect
-  puts loss, i
-  loss.backward()
+  puts "i[#{i}] loss: #{loss}"
+  loss.backward
   clip_grad_norm(model.parameters, max_norm: 0.5)
   optimizer.step
-  total_loss += loss.item()
+  total_loss += loss.item
   log_interval = 200
+
   if i % log_interval == 0 && i > 0
     cur_loss = total_loss / log_interval
     elapsed = Time.now - start_time
-    puts "| epoch #{epoch} | #{i}/#{training_data.length} batches |"\
-          "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed * 1000 / log_interval} | "\
+    puts "| epoch #{epochs} | #{i}/#{training_data.length} batches |"\
+          "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed.to_i / log_interval} | "\
           "loss #{cur_loss} | ppl #{Math.exp(cur_loss)}"
     total_loss = 0
-    start_time = time.time()
+    start_time = elapsed
 
     puts "saving model"
     Torch.save(model.state_dict, "net-#{i}.pth")
   end
-  i += 1
 end
 
 byebug
