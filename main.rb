@@ -37,11 +37,11 @@ end
 
 # puts out.inspect
 
-d_model = 512
-nhead = 8
-num_encoder_layers = 6
-num_decoder_layers = 6
-dim_feedforward = 2048
+d_model = 32
+nhead = 2
+num_encoder_layers = 2
+num_decoder_layers = 2
+dim_feedforward = 128
 dropout = 0.1
 activation = 'relu'
 
