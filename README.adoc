@@ -8,6 +8,13 @@ Secryst was originally built for the
 https://www.interscript.com[Interscript project]
 (https://github.com/interscript/interscript[at GitHub]).
 
+The goal is to allow:
+
+* Developers to train models and provide the trained model to users. In order to to train models, raw computing and their bindings can be used, e.g. OpenCL.
+
+* Users of the library in Ruby who only want to "use" the trained models should not require special bindings to run.
+
+
 == Prerequisites
 
 * `libtorch` (1.6.0)
@@ -83,6 +90,11 @@ based on:
   Llion Jones, Aidan N Gomez, Lukasz Kaiser, and Illia Polosukhin.
   Attention is all you need. 2017. In:
   _Advances in Neural Information Processing Systems_, pages 6000-6010.
+
+The sample transliteration system implemented is the Khmer system:
+
+* https://viblo.asia/p/nlp-khmer-word-segmentation-YWOZrgNNlQ0
+* https://viblo.asia/p/nlp-khmer-romanization-using-seq2seq-m68Z07OQKkG
 
 
 == Origin of name
