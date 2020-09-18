@@ -82,8 +82,8 @@ end
 input_vocab = TorchText::Vocab.new(input_vocab_counter)
 target_vocab = TorchText::Vocab.new(target_vocab_counter)
 train_txt = input_texts.zip(target_texts)
-max_input_seq_length = input_texts.max_by(&:length).length
-max_target_seq_length = target_texts.max_by(&:length).length
+max_input_seq_length = input_texts.max_by(&:length).length + 1
+max_target_seq_length = target_texts.max_by(&:length).length + 1
 
 
 # def batchify(data, bsz, vocab)
