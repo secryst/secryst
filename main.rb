@@ -39,11 +39,11 @@ end
 
 # puts out.inspect
 
-d_model = 512
-nhead = 8
-num_encoder_layers = 6
-num_decoder_layers = 6
-dim_feedforward = 2048
+d_model = 32
+nhead = 2
+num_encoder_layers = 2
+num_decoder_layers = 2
+dim_feedforward = 128
 dropout = 0.1
 activation = 'relu'
 
@@ -83,8 +83,8 @@ end
 input_vocab = TorchText::Vocab.new(input_vocab_counter)
 target_vocab = TorchText::Vocab.new(target_vocab_counter)
 train_txt = input_texts.zip(target_texts)
-max_input_seq_length = input_texts.max_by(&:length).length
-max_target_seq_length = target_texts.max_by(&:length).length
+max_input_seq_length = input_texts.max_by(&:length).length + 1
+max_target_seq_length = target_texts.max_by(&:length).length + 1
 
 
 # def batchify(data, bsz, vocab)
@@ -132,6 +132,7 @@ total_loss = 0.0
 start_time = Time.now
 ntokens = target_vocab.length
 training_data = input_data.zip(target_data)
+epoch = 0
 
 training_data.each_slice(batch_size).with_index do |batch, i|
   # unzip
@@ -150,28 +151,28 @@ training_data.each_slice(batch_size).with_index do |batch, i|
   loss.backward
   clip_grad_norm(model.parameters, max_norm: 0.5)
   optimizer.step
-  total_loss += loss.item
-  log_interval = 200
+  total_loss += loss.item()
 
-  if i % log_interval == 0 && i > 0
+  log_interval = 200
+  if i % log_interval == 0 && i > 0 || i == training_data.length / batch_size
     cur_loss = total_loss / log_interval
     elapsed = Time.now - start_time
-    puts "| epoch #{epochs} | #{i}/#{training_data.length} batches |"\
+    puts "| epoch #{epoch} | #{i}/#{training_data.length / batch_size} batches |"\
           "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed.to_i / log_interval} | "\
           "loss #{cur_loss} | ppl #{Math.exp(cur_loss)}"
     total_loss = 0
-    start_time = elapsed
+    start_time = Time.now
 
     puts "saving model"
     Torch.save(model.state_dict, "net-#{i}.pth")
   end
 end
 
-byebug
+# best_val_loss = 0
+# epochs = 3 # The number of epochs
+# best_model = nil
 
-# train_data = batchify(target_texts, batch_size, input_vocab)
-# val_data = batchify(val_txt, eval_batch_size)
-# test_data = batchify(test_txt, eval_batch_size)
-
-
-
+# epochs.times do |epoch|
+#   epoch_start_time = Time.now()
+#   train(epoch)
+# end
