@@ -131,7 +131,8 @@ total_loss = 0.0
 start_time = Time.now
 ntokens = target_vocab.length
 training_data = input_data.zip(target_data)
-i = 0
+i = epoch = 0
+
 training_data.each_slice(batch_size) do |batch|
   # unzip
   inputs, targets = batch.transpose
@@ -150,15 +151,16 @@ training_data.each_slice(batch_size) do |batch|
   clip_grad_norm(model.parameters, max_norm: 0.5)
   optimizer.step
   total_loss += loss.item()
+  # Torch.save(model.state_dict, "net-prom.pth")
   log_interval = 200
-  if i % log_interval == 0 && i > 0
+  if i % log_interval == 0 && i > 0 || i == training_data.length / batch_size
     cur_loss = total_loss / log_interval
     elapsed = Time.now - start_time
     puts "| epoch #{epoch} | #{i}/#{training_data.length} batches |"\
           "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed * 1000 / log_interval} | "\
           "loss #{cur_loss} | ppl #{Math.exp(cur_loss)}"
     total_loss = 0
-    start_time = time.time()
+    start_time = Time.now
 
     puts "saving model"
     Torch.save(model.state_dict, "net-#{i}.pth")
@@ -166,11 +168,11 @@ training_data.each_slice(batch_size) do |batch|
   i += 1
 end
 
-byebug
+# best_val_loss = 0
+# epochs = 3 # The number of epochs
+# best_model = nil
 
-# train_data = batchify(target_texts, batch_size, input_vocab)
-# val_data = batchify(val_txt, eval_batch_size)
-# test_data = batchify(test_txt, eval_batch_size)
-
-
-
+# epochs.times do |epoch|
+#   epoch_start_time = Time.now()
+#   train(epoch)
+# end
