@@ -16,6 +16,18 @@ https://www.interscript.com[Interscript project]
 * `lapack`
 * `openblas`
 
+On Ubuntu:
+[source,sh]
+----
+$ sudo apt-get update
+$ sudo apt-get install libfftw3-dev libgsl-dev libopenblas-dev liblapack-dev liblapacke-dev unzip
+$ wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+$ unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+$ bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
+$ bundle install
+----
+
+
 On macOS:
 
 [source,sh]
