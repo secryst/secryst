@@ -132,9 +132,9 @@ total_loss = 0.0
 start_time = Time.now
 ntokens = target_vocab.length
 training_data = input_data.zip(target_data)
-i = epoch = 0
+epoch = 0
 
-training_data.each_slice(batch_size) do |batch|
+training_data.each_slice(batch_size).with_index do |batch, i|
   # unzip
   inputs, targets = batch.transpose
   inputs = Torch.tensor(inputs).t
@@ -157,7 +157,7 @@ training_data.each_slice(batch_size) do |batch|
   if i % log_interval == 0 && i > 0 || i == training_data.length / batch_size
     cur_loss = total_loss / log_interval
     elapsed = Time.now - start_time
-    puts "| epoch #{epochs} | #{i}/#{training_data.length} batches |"\
+    puts "| epoch #{epoch} | #{i}/#{training_data.length} batches |"\
           "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed.to_i / log_interval} | "\
           "loss #{cur_loss} | ppl #{Math.exp(cur_loss)}"
     total_loss = 0
