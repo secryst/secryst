@@ -157,7 +157,7 @@ training_data.each_slice(batch_size).with_index do |batch, i|
   if i % log_interval == 0 && i > 0 || i == training_data.length / batch_size
     cur_loss = total_loss / log_interval
     elapsed = Time.now - start_time
-    puts "| epoch #{epoch} | #{i}/#{training_data.length} batches |"\
+    puts "| epoch #{epoch} | #{i}/#{training_data.length / batch_size} batches |"\
           "lr #{scheduler.get_lr()[0]} | ms/batch #{elapsed.to_i / log_interval} | "\
           "loss #{cur_loss} | ppl #{Math.exp(cur_loss)}"
     total_loss = 0
