@@ -37,17 +37,12 @@ jobs:
 
       - uses: actions/checkout@master
 
-      - name: Install gems
-        run: |
-          gem install bundler -v "~> 2"
-          bundle install --jobs 4 --retry 5
-
-      - name: Setup python
-        uses: actions/setup-python@v1
-        with:
-          python-version: ${{ matrix.python }}
-          architecture: x64
-
+      # - name: Setup python
+      #   uses: actions/setup-python@v1
+      #   with:
+      #     python-version: ${{ matrix.python }}
+      #     architecture: x64
+      #
       - name: Install ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -75,6 +70,11 @@ jobs:
       #     timeout_minutes: 5
       #     max_attempts: 3
       #     command: choco install --no-progress swig --version 4.0.1
+
+      - name: Install gems
+        run: |
+          gem install bundler -v "~> 2"
+          bundle install --jobs 4 --retry 5
 
       - name: Run RSpecs
         run: |
