@@ -49,7 +49,7 @@ jobs:
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
         run: |
-          brew install libtorch gsl lapack openblas
+          brew install libtorch gsl lapack openblas fftw
           bundle config build.numo-linalg \
             --with-openblas-dir=/usr/local/opt/openblas \
             --with-lapack-lib=/usr/local/opt/lapack
