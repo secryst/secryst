@@ -1,0 +1,82 @@
+name: test
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build:
+    name: Run specs on ${{ matrix.os }} ruby ${{ matrix.ruby }}
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.experimental }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        # windows-latest
+        ruby: ['2.6']
+        # '2.5', '2.4'
+        experimental: [false]
+        include:
+          - ruby: '2.7'
+            os: ubuntu-latest
+            experimental: true
+          - ruby: '2.7'
+            os: macos-latest
+            experimental: true
+          # - ruby: '2.7'
+          #   os: windows-latest
+          #   experimental: true
+
+    steps:
+      - name: Use Ruby
+        uses: actions/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
+      - uses: actions/checkout@master
+
+      - name: Install gems
+        run: |
+          gem install bundler -v "~> 2"
+          bundle install --jobs 4 --retry 5
+
+      - name: Setup python
+        uses: actions/setup-python@v1
+        with:
+          python-version: ${{ matrix.python }}
+          architecture: x64
+
+      - name: Install ubuntu dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install libfftw3-dev libgsl-dev libopenblas-dev liblapack-dev liblapacke-dev unzip
+          wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+          unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+          bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
+          bundle install
+
+      - name: Install macos dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install libtorch gsl lapack openblas
+          bundle config build.numo-linalg \
+            --with-openblas-dir=/usr/local/opt/openblas \
+            --with-lapack-lib=/usr/local/opt/lapack
+          bundle install
+
+      # - name: Install windows dependencies
+      #   if: matrix.os == 'windows-latest'
+      #   uses: nick-invision/retry@v1
+      #   with:
+      #     polling_interval_seconds: 5
+      #     timeout_minutes: 5
+      #     max_attempts: 3
+      #     command: choco install --no-progress swig --version 4.0.1
+
+      - name: Run RSpecs
+        run: |
+          bundle exec ./main.rb
+          bundle exec ./generate.rb
