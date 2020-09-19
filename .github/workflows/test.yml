@@ -99,5 +99,7 @@ jobs:
 
       - name: Run RSpecs
         run: |
+          echo "Running 'main.rb'"
           bundle exec ./main.rb
+          echo "Running 'generate.rb'"
           bundle exec ./generate.rb
