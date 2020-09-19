@@ -30,11 +30,6 @@ jobs:
           #   experimental: true
 
     steps:
-      - name: Use Ruby
-        uses: actions/setup-ruby@v1
-        with:
-          ruby-version: ${{ matrix.ruby }}
-
       - uses: actions/checkout@master
 
       # - name: Setup python
@@ -72,8 +67,12 @@ jobs:
         run: |
           gem install bundler -v "~> 2"
           bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
-          bundle install
-        # bundle install --jobs 4 --retry 5
+
+      - name: Use Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: ${{ matrix.ruby }}
 
       - name: Run RSpecs
         run: |
