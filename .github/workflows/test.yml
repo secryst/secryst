@@ -13,16 +13,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [ubuntu-latest, macos-latest]
-        os: [macos-latest]
+        os: [ubuntu-latest, macos-latest]
         # windows-latest
         ruby: ['2.6']
         # '2.5', '2.4'
         experimental: [false]
         include:
-          # - ruby: '2.7'
-          #   os: ubuntu-latest
-          #   experimental: true
+          - ruby: '2.7'
+            os: ubuntu-latest
+            experimental: true
           - ruby: '2.7'
             os: macos-latest
             experimental: true
@@ -46,12 +45,13 @@ jobs:
 
       - name: Install ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
-        # libtorch libtorch-dev
-        # the wget unzips to ./libtorch
+        #
+        # wget unzips to ./libtorch
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
-            liblapack-dev liblapacke-dev unzip make gcc automake g++
+            liblapack-dev liblapacke-dev unzip automake make gcc g++ \
+            libtorch libtorch-dev
           wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
           unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
 
