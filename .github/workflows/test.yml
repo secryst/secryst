@@ -51,7 +51,7 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
-            liblapack-dev liblapacke-dev unzip make gcc autoconf g++
+            liblapack-dev liblapacke-dev unzip make gcc automake g++
           wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
           unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
 
