@@ -50,8 +50,6 @@ jobs:
           sudo apt-get install libfftw3-dev libgsl-dev libopenblas-dev liblapack-dev liblapacke-dev unzip
           wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
           unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
-          bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
-          bundle install
 
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
@@ -60,7 +58,6 @@ jobs:
           bundle config build.numo-linalg \
             --with-openblas-dir=/usr/local/opt/openblas \
             --with-lapack-lib=/usr/local/opt/lapack
-          bundle install
 
       # - name: Install windows dependencies
       #   if: matrix.os == 'windows-latest'
@@ -74,7 +71,9 @@ jobs:
       - name: Install gems
         run: |
           gem install bundler -v "~> 2"
-          bundle install --jobs 4 --retry 5
+          bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
+          bundle install
+        # bundle install --jobs 4 --retry 5
 
       - name: Run RSpecs
         run: |
