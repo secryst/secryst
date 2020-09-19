@@ -58,7 +58,7 @@ jobs:
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
         run: |
-          brew install libtorch gsl lapack openblas fftw
+          brew install libtorch gsl lapack openblas fftw automake gcc g++
 
       # - uses: actions/cache@v2
       #   with:
