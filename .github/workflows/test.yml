@@ -13,15 +13,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        # os: [ubuntu-latest, macos-latest]
+        os: [macos-latest]
         # windows-latest
         ruby: ['2.6']
         # '2.5', '2.4'
         experimental: [false]
         include:
-          - ruby: '2.7'
-            os: ubuntu-latest
-            experimental: true
+          # - ruby: '2.7'
+          #   os: ubuntu-latest
+          #   experimental: true
           - ruby: '2.7'
             os: macos-latest
             experimental: true
@@ -32,17 +33,25 @@ jobs:
     steps:
       - uses: actions/checkout@master
 
+      - name: Use Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby }}
+
       # - name: Setup python
       #   uses: actions/setup-python@v1
       #   with:
       #     python-version: ${{ matrix.python }}
       #     architecture: x64
-      #
+
       - name: Install ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
+        # libtorch libtorch-dev
+        # the wget unzips to ./libtorch
         run: |
-          sudo apt-get update
-          sudo apt-get install libfftw3-dev libgsl-dev libopenblas-dev liblapack-dev liblapacke-dev unzip
+          sudo apt-get -y update
+          sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
+            liblapack-dev liblapacke-dev unzip make gcc autoconf g++
           wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
           unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
 
@@ -50,9 +59,13 @@ jobs:
         if: matrix.os == 'macos-latest'
         run: |
           brew install libtorch gsl lapack openblas fftw
-          bundle config build.numo-linalg \
-            --with-openblas-dir=/usr/local/opt/openblas \
-            --with-lapack-lib=/usr/local/opt/lapack
+
+      # - uses: actions/cache@v2
+      #   with:
+      #     path: vendor/bundle
+      #     key: bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby }}-${{ hashFiles('**/Gemfile.lock') }}
+      #     restore-keys: |
+      #       bundle-use-ruby-${{ matrix.os }}-${{ matrix.ruby }}-
 
       # - name: Install windows dependencies
       #   if: matrix.os == 'windows-latest'
@@ -63,16 +76,26 @@ jobs:
       #     max_attempts: 3
       #     command: choco install --no-progress swig --version 4.0.1
 
-      - name: Install gems
+      - name: Install bundler and bundle config
+        if: matrix.os == 'ubuntu-latest'
         run: |
           gem install bundler -v "~> 2"
-          bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
+          bundle config build.torch-rb \
+            --with-torch-dir=$(pwd)/libtorch
 
-      - name: Use Ruby
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: ${{ matrix.ruby }}
+      - name: Install bundler and bundle config
+        if: matrix.os == 'macos-latest'
+        run: |
+          gem install bundler -v "~> 2"
+          bundle config build.numo-linalg \
+            --with-openblas-dir=/usr/local/opt/openblas \
+            --with-lapack-lib=/usr/local/opt/lapack
+
+      - name: bundle install
+        # bundle config deployment true
+        # bundle config path vendor/bundle
+        run: |
+          bundle install --jobs 4 --retry 5
 
       - name: Run RSpecs
         run: |
