@@ -97,9 +97,12 @@ jobs:
         run: |
           bundle install --jobs 4 --retry 5
 
-      - name: Run RSpecs
+      - name: Train model
         run: |
           echo "Running 'main.rb'"
           bundle exec ./main.rb
+
+      - name: Test model
+        run: |
           echo "Running 'generate.rb'"
           bundle exec ./generate.rb
