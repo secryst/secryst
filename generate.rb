@@ -5,12 +5,12 @@ require_relative "transformer"
 require_relative "vocab"
 require "byebug"
 
-d_model = 32
-nhead = 2
-num_encoder_layers = 2
-num_decoder_layers = 2
-dim_feedforward = 128
-dropout = 0.1
+d_model = 64
+nhead = 8
+num_encoder_layers = 6
+num_decoder_layers = 6
+dim_feedforward = 2048 # 128
+dropout = 0.01 # 0.1
 activation = 'relu'
 
 
@@ -74,15 +74,36 @@ model = Torch::NN::Transformer.new(d_model: d_model,
   target_vocab_size: 72,
 )
 
-model.load_state_dict(Torch.load('net-559.pth'))
+model.load_state_dict(Torch.load('net-1200.pth'))
+model.eval
 
 
-input = input_data[0]
+# input = input_data[0]
+input = ["ប", "ា", "ន", "<eos>"]
 puts "Testing model with input:"
-puts input.map {|i| input_vocab.itos[i]}.select {|i| i != '<pad>' && i != '<eos>'}.join('')
-output = Torch.full([45,1], 1, dtype: :long)
+puts input.join('')
+puts input.map {|i| input_vocab.stoi[i]}.select {|i| i != '<pad>' && i != '<eos>'}.inspect
+output = Torch.full([4,1], 1, dtype: :long)
+output[0][0] = 0
+# output = Torch.tensor([target_data[0]]).t
+# puts output.map {|i| target_vocab.itos[i.item]}.join('').inspect
+input = Torch.tensor([input.map {|i| input_vocab.stoi[i]}]).t
+
 45.times do |i|
-  output = model.call(Torch.tensor([input]).t, output)
-  output = Torch.tensor([output.map {|i| i.argmax }], dtype: :long).t
-  puts output.map {|i| target_vocab.itos[i.item]}.join('').inspect
+  src_key_padding_mask = input.t.eq(1)
+  tgt_key_padding_mask = output.t.eq(1)
+  src_mask = Torch.triu(Torch.ones(input.size(0),input.size(0))).eq(0).transpose(0,1)
+  tgt_mask = Torch.triu(Torch.ones(output.size(0),output.size(0))).eq(0).transpose(0,1)
+  memory_mask = Torch.triu(Torch.ones(input.size(0),output.size(0))).eq(0).transpose(0,1)
+  opts = {
+    src_mask: src_mask,
+    tgt_mask: tgt_mask,
+    memory_mask: memory_mask,
+    src_key_padding_mask: src_key_padding_mask,
+    tgt_key_padding_mask: tgt_key_padding_mask,
+  }
+  prediction = model.call(input, output, opts).map {|i| i.argmax.item }
+  # output = Torch.tensor([output.map {|i| i.argmax }], dtype: :long).t
+  puts i, prediction.map {|i| target_vocab.itos[i]}.join('').inspect
+  output[0][i] = prediction[i]
 end

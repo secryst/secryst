@@ -34,7 +34,7 @@ module Torch
         else
           encoder_layers = num_encoder_layers.times.map { TransformerEncoderLayer.new(d_model, nhead, dim_feedforward: dim_feedforward, dropout: dropout, activation: activation) }
           encoder_norm = LayerNorm.new(d_model)
-          @encoder = TransformerEncoder.new(encoder_layers, encoder_norm, d_model, input_vocab_size)
+          @encoder = TransformerEncoder.new(encoder_layers, encoder_norm, d_model, input_vocab_size, dropout)
         end
 
         if custom_decoder
@@ -42,7 +42,7 @@ module Torch
         else
           decoder_layers = num_decoder_layers.times.map { TransformerDecoderLayer.new(d_model, nhead, dim_feedforward: dim_feedforward, dropout: dropout, activation: activation) }
           decoder_norm = LayerNorm.new(d_model)
-          @decoder = TransformerDecoder.new(decoder_layers, decoder_norm, d_model, target_vocab_size)
+          @decoder = TransformerDecoder.new(decoder_layers, decoder_norm, d_model, target_vocab_size, dropout)
         end
 
         @linear = Linear.new(d_model, target_vocab_size)
@@ -198,12 +198,13 @@ module Torch
       #     >>> out = transformer_encoder(src)
       #  __constants__ = ['norm']
 
-      def initialize(encoder_layers, norm=nil, d_model, vocab_size) # NOTE: inc-trspl
+      def initialize(encoder_layers, norm=nil, d_model, vocab_size, dropout) # NOTE: inc-trspl
         super()
         @d_model = d_model
         @layers = encoder_layers
         @num_layers = encoder_layers.length
         @embedding = Torch::NN::Embedding.new(vocab_size, d_model)
+        @pos_encoder = PositionalEncoding.new(d_model, dropout: dropout)
         @norm = norm
       end
 
@@ -216,6 +217,7 @@ module Torch
       #     see the docs in Transformer class.
       def forward(src, mask: nil, src_key_padding_mask: nil)
         output = @embedding.call(src) * Math.sqrt(@d_model)
+        output = @pos_encoder.call(output)
 
         @layers.each { |mod|
           output = mod.call(output, src_mask: mask, src_key_padding_mask: src_key_padding_mask)
@@ -244,12 +246,13 @@ module Torch
 
       # __constants__ = ['norm']
 
-      def initialize(decoder_layers, norm=nil, d_model, vocab_size)
+      def initialize(decoder_layers, norm=nil, d_model, vocab_size, dropout)
         super()
         @d_model = d_model
         @layers = decoder_layers
         @num_layers = decoder_layers.length
         @embedding = Torch::NN::Embedding.new(vocab_size, d_model)
+        @pos_encoder = PositionalEncoding.new(d_model, dropout: dropout)
         @norm = norm
       end
 
@@ -268,6 +271,7 @@ module Torch
                 memory_key_padding_mask: nil)
 
         output = @embedding.call(tgt) * Math.sqrt(@d_model)
+        output = @pos_encoder.call(output)
 
         @layers.each { |mod|
           output = mod.call(output, memory, tgt_mask: tgt_mask,
@@ -352,6 +356,35 @@ module Torch
         tgt = tgt + @dropout3.call(tgt2)
         tgt = @norm3.call(tgt)
         return tgt
+      end
+    end
+
+    class PositionalEncoding < Module
+      # PositionalEncoding module injects some information about the relative or absolute position of the tokens in the sequence. The positional encodings have the same dimension as the embeddings so that the two can be summed. Here, we use sine and cosine functions of different frequencies.
+      def initialize(d_model, dropout: 0.1, max_len: 5000)
+        super()
+        @dropout = Dropout.new(p: dropout)
+
+        pe = Torch.zeros(max_len, d_model)
+        position = Torch.arange(0, max_len, dtype: :float).unsqueeze(1)
+        div_term = Torch.exp(Torch.arange(0, d_model, 2).float() * (-Math.log(10000.0) / d_model))
+        # pe[:, 0::2] = torch.sin(position * div_term)
+        # pe[:, 1::2] = torch.cos(position * div_term)
+        sin = Torch.sin(position * div_term).t
+        cos = Torch.cos(position * div_term).t
+        pe.t!
+        pe.each.with_index do |row, i|
+          pe[i] = sin[i / 2] if i % 2 == 0
+          pe[i] = cos[(i-1)/2] if i % 2 != 0
+        end
+        pe.t!
+        pe = pe.unsqueeze(0).transpose(0, 1)
+        register_buffer('pe', pe)
+      end
+
+      def forward(x)
+        x = x + pe.narrow(0, 0, x.size(0))
+        return x
       end
     end
   end
