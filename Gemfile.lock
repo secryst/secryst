@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/ankane/torch.rb.git
-  revision: c7a805e46471842a962671604ede0cfb82e290cc
+  revision: e1614d67325654fae6d183323a3f005599f1a5b8
   specs:
     torch-rb (0.3.7)
       rice (>= 2.2)

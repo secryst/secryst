@@ -17,7 +17,14 @@ The goal is to allow:
 * Users of the library in Ruby who only want to "use" the trained models should not require special bindings to run.
 
 
+== Status
+
+Currently Secryst works with the Khmer Romanization system as cited below.
+
+
 == Prerequisites
+
+* Ruby 2.7 (*MUST* - 2.6 does not work with the latest torch-rb)
 
 * `libtorch` (1.6.0)
 * `fftw`

@@ -104,5 +104,5 @@ jobs:
 
       - name: Test model
         run: |
-          echo "Running 'generate.rb'"
-          bundle exec ./generate.rb
+          echo "Running 'translate.rb'"
+          bundle exec ruby translate.rb

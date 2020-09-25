@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 require "torch-rb"
 require_relative "transformer"
 require_relative "vocab"
