@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "numo/linalg/use/openblas"
 require "torch-rb"
 require "torchtext"
