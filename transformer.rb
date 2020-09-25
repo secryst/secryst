@@ -201,7 +201,10 @@ module Torch
       def initialize(encoder_layers, norm=nil, d_model, vocab_size, dropout) # NOTE: inc-trspl
         super()
         @d_model = d_model
-        @layers = encoder_layers
+        encoder_layers.each.with_index do |l, i|
+          instance_variable_set("@layer#{i}", l)
+        end
+        @layers = encoder_layers.length.times.map {|i| instance_variable_get("@layer#{i}") }
         @num_layers = encoder_layers.length
         @embedding = Torch::NN::Embedding.new(vocab_size, d_model)
         @pos_encoder = PositionalEncoding.new(d_model, dropout: dropout)
@@ -249,7 +252,10 @@ module Torch
       def initialize(decoder_layers, norm=nil, d_model, vocab_size, dropout)
         super()
         @d_model = d_model
-        @layers = decoder_layers
+        decoder_layers.each.with_index do |l, i|
+          instance_variable_set("@layer#{i}", l)
+        end
+        @layers = decoder_layers.length.times.map {|i| instance_variable_get("@layer#{i}") }
         @num_layers = decoder_layers.length
         @embedding = Torch::NN::Embedding.new(vocab_size, d_model)
         @pos_encoder = PositionalEncoding.new(d_model, dropout: dropout)

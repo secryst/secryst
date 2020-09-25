@@ -77,26 +77,15 @@ model.load_state_dict(Torch.load('net-last.pth'))
 model.eval
 
 
-# input = input_data[0]
-inputs = [
-  ["<sos>", "ប", "ា", "ន", "<eos>"], # ban
-  ["<sos>", "ក", "ា", "រ", "<eos>"], # kar
-  ["<sos>", "ប", "ា", "ន", "ក", "ា", "រ", "<eos>"], # bankar
-  ["<sos>", "ម", "ា", "ន", "<eos>"], # mean
-  ["<sos>", "ជ", "ា", "<eos>"], # chea
-  ["<sos>", "ន", "ៅ", "<eos>"], # now
-  ["<sos>", "ជ", "<eos>"], # variation "ch"
-  ["<sos>", "ព", "្", "រ", "ះ", "ធ", "ម", "្", "ម", "ទ", "េ", "ស", "ន", "ា", "<eos>"], # preah thommotesanea
-  ["<sos>", "ភ", "ា", "ស", "ា", "ខ", "្", "ម", "ែ", "រ", "<eos>"], # khmer
-]
-inputs.each do |input|
-  puts "Testing model with input:"
-  puts input.join('')
-  puts input.map {|i| input_vocab.stoi[i]}.select {|i| i != '<pad>' && i != '<eos>'}.inspect
-  output = Torch.tensor([[target_vocab.stoi['<sos>']]])
-  input = Torch.tensor([input.map {|i| input_vocab.stoi[i]}]).t
 
-  20.times do |i|
+loop do
+  puts "Enter some Khmer phrase to transliterate:"
+
+  input = ['<sos>'] + gets().chars + ['<eos>']
+  input = Torch.tensor([input.map {|i| input_vocab.stoi[i]}]).t
+  output = Torch.tensor([[target_vocab.stoi['<sos>']]])
+
+  100.times do |i|
     begin
     src_key_padding_mask = input.t.eq(1)
     tgt_key_padding_mask = output.t.eq(1)
@@ -107,11 +96,12 @@ inputs.each do |input|
       tgt_key_padding_mask: tgt_key_padding_mask,
       memory_key_padding_mask: src_key_padding_mask,
     }
+    # byebug
     prediction = model.call(input, output, opts).map {|i| i.argmax.item }
+    break if target_vocab.itos[prediction[i]] == '<eos>'
     output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
     rescue StandardError => e
-      print '.'
     end
   end
-  puts "result: #{output[1..-1].map {|i| target_vocab.itos[i.item]}.join('').inspect}"
+  puts "#{output[1..-1].map {|i| target_vocab.itos[i.item]}.join('')}"
 end
