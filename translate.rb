@@ -1,9 +1,6 @@
-require "numo/linalg/use/openblas"
 require "torch-rb"
-require "torchtext"
 require_relative "transformer"
 require_relative "vocab"
-require "byebug"
 
 d_model = 64
 nhead = 8
@@ -96,7 +93,6 @@ loop do
       tgt_key_padding_mask: tgt_key_padding_mask,
       memory_key_padding_mask: src_key_padding_mask,
     }
-    # byebug
     prediction = model.call(input, output, opts).map {|i| i.argmax.item }
     break if target_vocab.itos[prediction[i]] == '<eos>'
     output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
