@@ -1,3 +1,158 @@
+# ported from https://github.com/pytorch/pytorch/blob/4ae832e1060c72cb89de1d9693629783dbe0c9a6/torch/csrc/api/include/torch/nn/functional/activation.h
+module Torch
+  module NN
+    class MultiheadAttention < Module
+      # Allows the model to jointly attend to information
+      # from different representation subspaces.
+      # See reference: Attention Is All You Need
+      # .. math::
+      #     \text{MultiHead}(Q, K, V) = \text{Concat}(head_1,\dots,head_h)W^O
+      #     \text{where} head_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)
+      # Args:
+      #     embed_dim: total dimension of the model.
+      #     num_heads: parallel attention heads.
+      #     dropout: a Dropout layer on attn_output_weights. Default: 0.0.
+      #     bias: add bias as module parameter. Default: true.
+      #     add_bias_kv: add bias to the key and value sequences at dim=0.
+      #     add_zero_attn: add a new batch of zeros to the key and
+      #                     value sequences at dim=1.
+      #     kdim: total number of features in key. Default: nil.
+      #     vdim: total number of features in value. Default: nil.
+      #     Note: if kdim and vdim are nil, they will be set to embed_dim such that
+      #     query, key, and value have the same number of features.
+      # Examples::
+      #     >>> multihead_attn = MultiheadAttention.new(embed_dim: embed_dim, num_heads: num_heads)
+      #     >>> attn_output, attn_output_weights = multihead_attn(query, key, value)
+      # bias_k: Optional[Torch::Tensor]
+      # bias_v: Optional[Torch::Tensor]
+
+      def initialize(embed_dim, num_heads, dropout:0.0, bias: true, add_bias_kv: false, add_zero_attn: false, kdim: nil, vdim: nil)
+        super()
+        @embed_dim = embed_dim
+        @kdim = kdim || embed_dim
+        @vdim = vdim || embed_dim
+        @_qkv_same_embed_dim = @kdim == @embed_dim && @vdim == @embed_dim
+
+        @num_heads = num_heads
+        @dropout = dropout
+        @head_dim = embed_dim / num_heads
+        raise ArgumentError, "embed_dim must be divisible by num_heads" if @head_dim * num_heads != @embed_dim
+
+        if !@_qkv_same_embed_dim
+          @q_proj_weight = Parameter.new(Torch::Tensor.new(embed_dim, embed_dim))
+          @k_proj_weight = Parameter.new(Torch::Tensor.new(embed_dim, @kdim))
+          @v_proj_weight = Parameter.new(Torch::Tensor.new(embed_dim, @vdim))
+          register_parameter('in_proj_weight', nil)
+        else
+          @in_proj_weight = Parameter.new(Torch.empty(3 * embed_dim, embed_dim))
+          register_parameter('q_proj_weight', nil)
+          register_parameter('k_proj_weight', nil)
+          register_parameter('v_proj_weight', nil)
+        end
+
+        if bias
+          @in_proj_bias = Parameter.new(Torch.empty(3 * embed_dim))
+        else
+          register_parameter('in_proj_bias', nil)
+        end
+        @out_proj = Linear.new(embed_dim, embed_dim)
+
+        if add_bias_kv
+          @bias_k = Parameter.new(Torch.empty(1, 1, embed_dim))
+          @bias_v = Parameter.new(Torch.empty(1, 1, embed_dim))
+        else
+          @bias_k = @bias_v = nil
+        end
+
+        @add_zero_attn = add_zero_attn
+
+        _reset_parameters
+      end
+
+      def _reset_parameters
+        if @_qkv_same_embed_dim
+          Init.xavier_uniform!(@in_proj_weight)
+        else
+          Init.xavier_uniform!(@q_proj_weight)
+          Init.xavier_uniform!(@k_proj_weight)
+          Init.xavier_uniform!(@v_proj_weight)
+        end
+
+        if @in_proj_bias
+          Init.constant!(@in_proj_bias, 0.0)
+          Init.constant!(@out_proj.bias, 0.0)
+        end
+        if @bias_k
+          Init.xavier_normal!(@bias_k)
+        end
+        if @bias_v
+          Init.xavier_normal!(@bias_v)
+        end
+      end
+
+      # Args:
+      #     query, key, value: map a query and a set of key-value pairs to an output.
+      #         See "Attention Is All You Need" for more details.
+      #     key_padding_mask: if provided, specified padding elements in the key will
+      #         be ignored by the attention. When given a binary mask and a value is true,
+      #         the corresponding value on the attention layer will be ignored. When given
+      #         a byte mask and a value is non-zero, the corresponding value on the attention
+      #         layer will be ignored
+      #     need_weights: output attn_output_weights.
+      #     attn_mask: 2D or 3D mask that prevents attention to certain positions. A 2D mask will be broadcasted for all
+      #         the batches while a 3D mask allows to specify a different mask for the entries of each batch.
+      # Shape:
+      #     - Inputs:
+      #     - query: :math:`(L, N, E)` where L is the target sequence length, N is the batch size, E is
+      #       the embedding dimension.
+      #     - key: :math:`(S, N, E)`, where S is the source sequence length, N is the batch size, E is
+      #       the embedding dimension.
+      #     - value: :math:`(S, N, E)` where S is the source sequence length, N is the batch size, E is
+      #       the embedding dimension.
+      #     - key_padding_mask: :math:`(N, S)` where N is the batch size, S is the source sequence length.
+      #       If a ByteTensor is provided, the non-zero positions will be ignored while the position
+      #       with the zero positions will be unchanged. If a BoolTensor is provided, the positions with the
+      #       value of ``true`` will be ignored while the position with the value of ``false`` will be unchanged.
+      #     - attn_mask: 2D mask :math:`(L, S)` where L is the target sequence length, S is the source sequence length.
+      #       3D mask :math:`(N*num_heads, L, S)` where N is the batch size, L is the target sequence length,
+      #       S is the source sequence length. attn_mask ensure that position i is allowed to attend the unmasked
+      #       positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
+      #       while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``true``
+      #       is not allowed to attend while ``false`` values will be unchanged. If a FloatTensor
+      #       is provided, it will be added to the attention weight.
+      #     - Outputs:
+      #     - attn_output: :math:`(L, N, E)` where L is the target sequence length, N is the batch size,
+      #       E is the embedding dimension.
+      #     - attn_output_weights: :math:`(N, L, S)` where N is the batch size,
+      #       L is the target sequence length, S is the source sequence length.
+      def forward(query, key, value, key_padding_mask:nil,
+                  need_weights:true, attn_mask:nil)
+        if !@_qkv_same_embed_dim
+          return F.multi_head_attention_forward(
+            query, key, value, @embed_dim, @num_heads,
+            @in_proj_weight, @in_proj_bias,
+            @bias_k, @bias_v, @add_zero_attn,
+            @dropout, @out_proj.weight, @out_proj.bias,
+            training: @training,
+            key_padding_mask: key_padding_mask, need_weights: need_weights,
+            attn_mask: attn_mask, use_separate_proj_weight: true,
+            q_proj_weight: @q_proj_weight, k_proj_weight: @k_proj_weight,
+            v_proj_weight: @v_proj_weight)
+        else
+          return F.multi_head_attention_forward(
+              query, key, value, @embed_dim, @num_heads,
+              @in_proj_weight, @in_proj_bias,
+              @bias_k, @bias_v, @add_zero_attn,
+              @dropout, @out_proj.weight, @out_proj.bias,
+              training: @training,
+              key_padding_mask: key_padding_mask, need_weights: need_weights,
+              attn_mask: attn_mask)
+        end
+      end
+    end
+  end
+end
+
 module Torch
   module NN
     class Functional
@@ -13,9 +168,9 @@ module Torch
         #                   value sequences at dim=1.
         #   dropout_p: probability of an element to be zeroed.
         #   out_proj_weight, out_proj_bias: the output projection weight and bias.
-        #   training: apply dropout if is ``True``.
+        #   training: apply dropout if is ``true``.
         #   key_padding_mask: if provided, specified padding elements in the key will
-        #       be ignored by the attention. This is an binary mask. When the value is True,
+        #       be ignored by the attention. This is a binary mask. When the value is true,
         #       the corresponding value on the attention layer will be filled with -inf.
         #   need_weights: output attn_output_weights.
         #   attn_mask: 2D or 3D mask that prevents attention to certain positions. A 2D mask will be broadcasted for all
@@ -36,13 +191,13 @@ module Torch
         #   - key_padding_mask: :math:`(N, S)` where N is the batch size, S is the source sequence length.
         #     If a ByteTensor is provided, the non-zero positions will be ignored while the zero positions
         #     will be unchanged. If a BoolTensor is provided, the positions with the
-        #     value of ``True`` will be ignored while the position with the value of ``False`` will be unchanged.
+        #     value of ``true`` will be ignored while the position with the value of ``false`` will be unchanged.
         #   - attn_mask: 2D mask :math:`(L, S)` where L is the target sequence length, S is the source sequence length.
         #     3D mask :math:`(N*num_heads, L, S)` where N is the batch size, L is the target sequence length,
         #     S is the source sequence length. attn_mask ensures that position i is allowed to attend the unmasked
         #     positions. If a ByteTensor is provided, the non-zero positions are not allowed to attend
-        #     while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``True``
-        #     are not allowed to attend while ``False`` values will be unchanged. If a FloatTensor
+        #     while the zero positions will be unchanged. If a BoolTensor is provided, positions with ``true``
+        #     are not allowed to attend while ``false`` values will be unchanged. If a FloatTensor
         #     is provided, it will be added to the attention weight.
         #   - static_k: :math:`(N*num_heads, S, E/num_heads)`, where S is the source sequence length,
         #     N is the batch size, E is the embedding dimension. E/num_heads is the head dimension.
@@ -53,20 +208,6 @@ module Torch
         #     E is the embedding dimension.
         #   - attn_output_weights: :math:`(N, L, S)` where N is the batch size,
         #     L is the target sequence length, S is the source sequence length.
-
-        # if not torch.jit.is_scripting():
-        #   tens_ops = (query, key, value, in_proj_weight, in_proj_bias, bias_k, bias_v,
-        #               out_proj_weight, out_proj_bias)
-        #   if any([type(t) is not Tensor for t in tens_ops]) and has_torch_function(tens_ops):
-        #       return handle_torch_function(
-        #           multi_head_attention_forward, tens_ops, query, key, value,
-        #           embed_dim_to_check, num_heads, in_proj_weight, in_proj_bias,
-        #           bias_k, bias_v, add_zero_attn, dropout_p, out_proj_weight,
-        #           out_proj_bias, training=training, key_padding_mask=key_padding_mask,
-        #           need_weights=need_weights, attn_mask=attn_mask,
-        #           use_separate_proj_weight=use_separate_proj_weight,
-        #           q_proj_weight=q_proj_weight, k_proj_weight=k_proj_weight,
-        #           v_proj_weight=v_proj_weight, static_k=static_k, static_v=static_v)
         def multi_head_attention_forward(query,
                                  key,
                                  value,
@@ -164,15 +305,15 @@ module Torch
               v = linear(value, _w, _b)
             end
           else
-            q_proj_weight_non_opt = q_proj_weight # NOTE: inc-trspl
+            q_proj_weight_non_opt = q_proj_weight
             len1, len2 = q_proj_weight_non_opt.size()
             raise ArgumentError if len1 != embed_dim || len2 != query.size(-1)
 
-            k_proj_weight_non_opt = k_proj_weight # NOTE: inc-trspl
+            k_proj_weight_non_opt = k_proj_weight
             len1, len2 = k_proj_weight_non_opt.size()
             raise ArgumentError if len1 != embed_dim || len2 != key.size(-1)
 
-            v_proj_weight_non_opt = v_proj_weight # NOTE: inc-trspl
+            v_proj_weight_non_opt = v_proj_weight
             len1, len2 = v_proj_weight_non_opt.size()
             raise ArgumentError if len1 != embed_dim || len2 != value.size(-1)
 
@@ -209,7 +350,7 @@ module Torch
           # convert ByteTensor key_padding_mask to bool
           if key_padding_mask && key_padding_mask.dtype == Torch.uint8
             puts("Byte tensor for key_padding_mask in NN::MultiheadAttention is deprecated. Use bool tensor instead.")
-            key_padding_mask = key_padding_mask.to(Torch.bool) # NOTE: inc-trspl
+            key_padding_mask = key_padding_mask.to(Torch.bool)
           end
 
           if bias_k && bias_v
@@ -267,7 +408,7 @@ module Torch
 
           if attn_mask
             if attn_mask.dtype == Torch.bool
-              attn_output_weights.masked_fill!(attn_mask, -1.0/0.0) # NOTE: inc-trsplc float inf
+              attn_output_weights.masked_fill!(attn_mask, -1.0/0.0)
             else
               attn_output_weights += attn_mask
             end
@@ -279,7 +420,7 @@ module Torch
             attn_output_weights = attn_output_weights.masked_fill(
               key_padding_mask.unsqueeze(1).unsqueeze(2),
               -1.0/0.0
-            ) # NOTE: inc-trspl
+            )
             attn_output_weights = attn_output_weights.view(bsz * num_heads, tgt_len, src_len)
           end
 

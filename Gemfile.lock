@@ -1,9 +1,11 @@
-GIT
-  remote: https://github.com/ankane/torch.rb.git
-  revision: c7a805e46471842a962671604ede0cfb82e290cc
+PATH
+  remote: .
   specs:
-    torch-rb (0.3.7)
-      rice (>= 2.2)
+    secryst (0.0.1)
+      numo (>= 0.1.1)
+      numo-linalg (>= 0.1.5)
+      torch-rb (>= 0.4.0)
+      torchtext (>= 0.1.0)
 
 GEM
   remote: https://rubygems.org/
@@ -24,6 +26,8 @@ GEM
       numo-narray (>= 0.9.1.4)
     numo-narray (0.9.1.8)
     rice (2.2.0)
+    torch-rb (0.4.0)
+      rice (>= 2.2)
     torchtext (0.1.0)
       torch-rb (>= 0.3.2)
 
@@ -32,10 +36,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
-  numo
-  numo-linalg
-  torch-rb!
-  torchtext
+  secryst!
 
 BUNDLED WITH
    2.1.4
