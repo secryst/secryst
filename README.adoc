@@ -1,12 +1,14 @@
 = Secryst
 
+image:https://github.com/secryst/secryst/workflows/test/badge.svg["Build status", link="https://github.com/secryst/secryst/actions?workflow=test"]
+
 == Purpose
 
 A seq2seq transformer suited for transliteration. Written in Ruby.
 
 Secryst was originally built for the
 https://www.interscript.com[Interscript project]
-(https://github.com/interscript/interscript[at GitHub]).
+(https://github.com/secryst/secryst[at GitHub]).
 
 The goal is to allow:
 
@@ -15,7 +17,14 @@ The goal is to allow:
 * Users of the library in Ruby who only want to "use" the trained models should not require special bindings to run.
 
 
+== Status
+
+Currently Secryst works with the Khmer Romanization system as cited below.
+
+
 == Prerequisites
+
+* Ruby 2.7 (*MUST* - 2.6 does not work with the latest torch-rb)
 
 * `libtorch` (1.6.0)
 * `fftw`
@@ -23,14 +32,21 @@ The goal is to allow:
 * `lapack`
 * `openblas`
 
+
 On Ubuntu:
+
 [source,sh]
 ----
-$ sudo apt-get update
-$ sudo apt-get install libfftw3-dev libgsl-dev libopenblas-dev liblapack-dev liblapacke-dev unzip
+$ sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
+    liblapack-dev liblapacke-dev unzip automake make gcc g++ \
+    libtorch libtorch-dev
 $ wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
 $ unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
-$ bundle config build.torch-rb --with-torch-dir=/path/to/libtorch
+
+$ gem install bundler -v "~> 2"
+$ bundle config build.torch-rb \
+    --with-torch-dir=$(pwd)/libtorch
+
 $ bundle install
 ----
 
@@ -39,46 +55,27 @@ On macOS:
 
 [source,sh]
 ----
-$ brew install libtorch gsl lapack openblas
+$ brew install libtorch gsl lapack openblas fftw automake gcc
+
+$ gem install bundler -v "~> 2"
 $ bundle config build.numo-linalg \
-  --with-openblas-dir=/usr/local/opt/openblas \
-  --with-lapack-lib=/usr/local/opt/lapack
+    --with-openblas-dir=/usr/local/opt/openblas \
+    --with-lapack-lib=/usr/local/opt/lapack
+
 $ bundle install
 ----
 
-////
-You may need to do this to link the brew-installed `lapack` and `openblas`:
 
-----
-For compilers to find lapack you may need to set:
-  export LDFLAGS="-L/usr/local/opt/lapack/lib"
-  export CPPFLAGS="-I/usr/local/opt/lapack/include"
-
-For pkg-config to find lapack you may need to set:
-  export PKG_CONFIG_PATH="/usr/local/opt/lapack/lib/pkgconfig"
-
-For compilers to find openblas you may need to set:
-  export LDFLAGS="-L/usr/local/opt/openblas/lib"
-  export CPPFLAGS="-I/usr/local/opt/openblas/include"
-
-For pkg-config to find openblas you may need to set:
-  export PKG_CONFIG_PATH="/usr/local/opt/openblas/lib/pkgconfig"
-----
-////
-
-(macOS)
+NOTE: (for macOS)
 If you mistakenly installed `numo-linalg` without the above configuration
-options, please reinstall it with these steps:
+options, please uninstall it with these steps and configure the bundle as
+described above:
 
 [source,sh]
 ----
-$ bundle config build.numo-linalg \
-  --with-openblas-dir=/usr/local/opt/openblas \
-  --with-lapack-lib=/usr/local/opt/lapack
 $ bundle exec gem uninstall numo-linalg
-# This step will automatically install numo-linalg with the right config
-$ bundle
 ----
+
 
 
 == References
