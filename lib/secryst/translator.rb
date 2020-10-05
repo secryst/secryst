@@ -42,8 +42,8 @@ module Secryst
     end
 
     private def load_vocabs
-      @input_vocab = TorchText::Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/input_vocab.json")))
-      @target_vocab = TorchText::Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/target_vocab.json")))
+      @input_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/input_vocab.json")))
+      @target_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/target_vocab.json")))
     end
   end
 end

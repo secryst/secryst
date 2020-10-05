@@ -150,8 +150,8 @@ module Secryst
         end
       end
 
-      @input_vocab = TorchText::Vocab.new(input_vocab_counter)
-      @target_vocab = TorchText::Vocab.new(target_vocab_counter)
+      @input_vocab = Vocab.new(input_vocab_counter)
+      @target_vocab = Vocab.new(target_vocab_counter)
 
       # Generate train, eval, and test batches
       seed = 1

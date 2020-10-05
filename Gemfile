@@ -1,3 +1,4 @@
 source 'https://rubygems.org'
 
-gemspec
+gemspec name: 'secryst'
+gemspec name: 'secryst-trainer'

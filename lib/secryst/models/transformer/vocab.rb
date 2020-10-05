@@ -1,4 +1,4 @@
-module TorchText
+module Secryst
   class Vocab
     UNK = "<unk>"
     attr_reader :stoi, :itos, :freqs

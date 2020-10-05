@@ -1,4 +1,4 @@
-require "secryst"
+require "secryst-trainer"
 
 kh2en = Secryst::Trainer.new({
   model: 'transformer',
