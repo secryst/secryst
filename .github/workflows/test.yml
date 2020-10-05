@@ -15,16 +15,16 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         # windows-latest
-        ruby: ['2.6']
+        ruby: ['2.7']
         # '2.5', '2.4'
         experimental: [false]
-        include:
-          - ruby: '2.7'
-            os: ubuntu-latest
-            experimental: true
-          - ruby: '2.7'
-            os: macos-latest
-            experimental: true
+        # include:
+        #   - ruby: '2.7'
+        #     os: ubuntu-latest
+        #     experimental: true
+        #   - ruby: '2.7'
+        #     os: macos-latest
+        #     experimental: true
           # - ruby: '2.7'
           #   os: windows-latest
           #   experimental: true
