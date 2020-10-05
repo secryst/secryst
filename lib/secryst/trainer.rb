@@ -29,11 +29,12 @@ module Secryst
       @checkpoint_every = checkpoint_every
       @checkpoint_dir = checkpoint_dir
       FileUtils.mkdir_p(@checkpoint_dir)
-      generate_vocabs_and_data()
-      save_vocabs()
+      generate_vocabs_and_data
+      save_vocabs
 
-      if model == 'transformer'
-        @model = Torch::NN::Transformer.new(hyperparameters.merge({
+      case model
+      when 'transformer'
+        @model = Secryst::Transformer.new(hyperparameters.merge({
           input_vocab_size: @input_vocab.length,
           target_vocab_size: @target_vocab.length,
         }))
@@ -45,19 +46,67 @@ module Secryst
     def train
       best_model = nil
       best_val_loss = 1.0/0.0 # infinity
-      if @model_name == 'transformer'
-        criterion = Torch::NN::CrossEntropyLoss.new(ignore_index: index_of('<pad>')).to(@device)
-        optimizer = Torch::Optim::SGD.new(@model.parameters, lr: @lr)
-        scheduler = Torch::Optim::LRScheduler::StepLR.new(optimizer, step_size: @scheduler_step_size, gamma: @gamma)
 
+      return unless @model_name == 'transformer'
+
+      criterion = Torch::NN::CrossEntropyLoss.new(ignore_index: index_of('<pad>')).to(@device)
+      optimizer = Torch::Optim::SGD.new(@model.parameters, lr: @lr)
+      scheduler = Torch::Optim::LRScheduler::StepLR.new(optimizer, step_size: @scheduler_step_size, gamma: @gamma)
+
+      total_loss = 0.0
+      start_time = Time.now
+      ntokens = @target_vocab.length
+      epoch = 0
+
+      loop do
+        epoch_start_time = Time.now
+        @model.train
+        @train_data.each.with_index do |batch, i|
+          inputs, targets, decoder_inputs, src_mask, tgt_mask, memory_mask = batch
+          inputs = Torch.tensor(inputs).t
+          decoder_inputs = Torch.tensor(decoder_inputs).t
+          targets = Torch.tensor(targets).t
+          src_key_padding_mask = inputs.t.eq(1)
+          tgt_key_padding_mask = decoder_inputs.t.eq(1)
+
+          optimizer.zero_grad
+          opts = {
+            # src_mask: src_mask,
+            tgt_mask: tgt_mask,
+            # memory_mask: memory_mask,
+            src_key_padding_mask: src_key_padding_mask,
+            tgt_key_padding_mask: tgt_key_padding_mask,
+            memory_key_padding_mask: src_key_padding_mask,
+          }
+          output = @model.call(inputs, decoder_inputs, opts)
+          loss = criterion.call(output.transpose(0,1).reshape(-1, ntokens), targets.t.view(-1))
+          loss.backward
+          ClipGradNorm.clip_grad_norm(@model.parameters, max_norm: 0.5)
+          optimizer.step
+
+          # puts "i[#{i}] loss: #{loss}"
+          total_loss += loss.item()
+          if ( (i + 1) % @log_interval == 0 )
+            cur_loss = total_loss / @log_interval
+            elapsed = Time.now - start_time
+            puts "| epoch #{epoch} | #{i + 1}/#{@train_data.length} batches | "\
+                  "lr #{scheduler.get_lr()[0].round(4)} | ms/batch #{(1000*elapsed.to_f / @log_interval).round} | "\
+                  "loss #{cur_loss.round(5)} | ppl #{Math.exp(cur_loss).round(5)}"
+            total_loss = 0
+            start_time = Time.now
+          end
+        end
+
+        if epoch > 0 && epoch % @checkpoint_every == 0
+          puts ">> Saving checkpoint '#{@checkpoint_dir}/checkpoint-#{epoch}.pth'"
+          Torch.save(@model.state_dict, "#{@checkpoint_dir}/checkpoint-#{epoch}.pth")
+        end
+
+        # Evaluate
+        @model.eval()
         total_loss = 0.0
-        start_time = Time.now
-        ntokens = @target_vocab.length
-        epoch = 0
-        loop do
-          epoch_start_time = Time.now
-          @model.train
-          @train_data.each.with_index do |batch, i|
+        Torch.no_grad do
+          @eval_data.each.with_index do |batch, i|
             inputs, targets, decoder_inputs, src_mask, tgt_mask, memory_mask = batch
             inputs = Torch.tensor(inputs).t
             decoder_inputs = Torch.tensor(decoder_inputs).t
@@ -65,7 +114,6 @@ module Secryst
             src_key_padding_mask = inputs.t.eq(1)
             tgt_key_padding_mask = decoder_inputs.t.eq(1)
 
-            optimizer.zero_grad
             opts = {
               # src_mask: src_mask,
               tgt_mask: tgt_mask,
@@ -74,73 +122,30 @@ module Secryst
               tgt_key_padding_mask: tgt_key_padding_mask,
               memory_key_padding_mask: src_key_padding_mask,
             }
-            output = @model.call(inputs, decoder_inputs, opts)
-            loss = criterion.call(output.transpose(0,1).reshape(-1, ntokens), targets.t.view(-1))
-            loss.backward
-            Torch::NN::F.clip_grad_norm(@model.parameters, max_norm: 0.5)
-            optimizer.step
+            output = @model.call(inputs, decoder_inputs, **opts)
+            output_flat = output.transpose(0,1).reshape(-1, ntokens)
 
-            # puts "i[#{i}] loss: #{loss}"
-            total_loss += loss.item()
-            if ( (i + 1) % @log_interval == 0 )
-              cur_loss = total_loss / @log_interval
-              elapsed = Time.now - start_time
-              puts "| epoch #{epoch} | #{i + 1}/#{@train_data.length} batches | "\
-                    "lr #{scheduler.get_lr()[0].round(4)} | ms/batch #{(1000*elapsed.to_f / @log_interval).round} | "\
-                    "loss #{cur_loss.round(5)} | ppl #{Math.exp(cur_loss).round(5)}"
-              total_loss = 0
-              start_time = Time.now
-            end
+            total_loss += criterion.call(output_flat, targets.t.view(-1)).item
           end
-
-          if epoch > 0 && epoch % @checkpoint_every == 0
-            Torch.save(@model.state_dict, "#{@checkpoint_dir}/checkpoint-#{epoch}.pth")
+          total_loss = total_loss / @eval_data.length
+          puts('-' * 89)
+          puts "| end of epoch #{epoch} | time: #{(Time.now - epoch_start_time).round(3)}s | "\
+                  " valid loss #{total_loss.round(5)} | valid ppl #{Math.exp(total_loss).round(5)} "
+          puts('-' * 89)
+          if total_loss < best_val_loss
+            best_model = @model
+            best_val_loss = total_loss
           end
-
-          # Evaluate
-          @model.eval()
-          total_loss = 0.0
-          Torch.no_grad do
-            @eval_data.each.with_index do |batch, i|
-              inputs, targets, decoder_inputs, src_mask, tgt_mask, memory_mask = batch
-              inputs = Torch.tensor(inputs).t
-              decoder_inputs = Torch.tensor(decoder_inputs).t
-              targets = Torch.tensor(targets).t
-              src_key_padding_mask = inputs.t.eq(1)
-              tgt_key_padding_mask = decoder_inputs.t.eq(1)
-
-              opts = {
-                # src_mask: src_mask,
-                tgt_mask: tgt_mask,
-                # memory_mask: memory_mask,
-                src_key_padding_mask: src_key_padding_mask,
-                tgt_key_padding_mask: tgt_key_padding_mask,
-                memory_key_padding_mask: src_key_padding_mask,
-              }
-              output = @model.call(inputs, decoder_inputs, **opts)
-              output_flat = output.transpose(0,1).reshape(-1, ntokens)
-
-              total_loss += criterion.call(output_flat, targets.t.view(-1)).item
-            end
-            total_loss = total_loss / @eval_data.length
-            puts('-' * 89)
-            puts "| end of epoch #{epoch} | time: #{(Time.now - epoch_start_time).round(3)}s | "\
-                    " valid loss #{total_loss.round(5)} | valid ppl #{Math.exp(total_loss).round(5)} "
-            puts('-' * 89)
-            if total_loss < best_val_loss
-              best_model = @model
-              best_val_loss = total_loss
-            end
-          end
-          scheduler.step
-
-          epoch += 1
-          break if @max_epochs && @max_epochs == epoch
         end
+        scheduler.step
+
+        epoch += 1
+        break if @max_epochs && @max_epochs < epoch
       end
     end
 
     private
+
     def generate_vocabs_and_data
       input_texts = []
       target_texts = []

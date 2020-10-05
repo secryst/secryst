@@ -4,10 +4,10 @@ module Secryst
       @device = "cpu"
       @vocabs_dir = vocabs_dir
 
-      load_vocabs()
+      load_vocabs
 
       if model == 'transformer'
-        @model = Torch::NN::Transformer.new(hyperparameters.merge({
+        @model = Secryst::Transformer.new(hyperparameters.merge({
           input_vocab_size: @input_vocab.length,
           target_vocab_size: @target_vocab.length,
         }))
@@ -42,7 +42,8 @@ module Secryst
       puts "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
     end
 
-    private def load_vocabs
+    private
+    def load_vocabs
       @input_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/input_vocab.json")))
       @target_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/target_vocab.json")))
     end

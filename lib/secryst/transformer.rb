@@ -1,6 +1,6 @@
 # ported from https://github.com/pytorch/pytorch/blob/626e410e1dedcdb9d5a410a8827cc7a8a9fbcce1/torch/nn/modules/transformer.py
 
-module Torch::NN
+module Secryst
   class Transformer < Torch::NN::Module
     # A transformer model. User is able to modify the attributes as needed. The architecture
     # is based on the paper "Attention Is All You Need". Ashish Vaswani, Noam Shazeer,
@@ -34,7 +34,7 @@ module Torch::NN
         @encoder = custom_encoder
       else
         encoder_layers = num_encoder_layers.times.map { TransformerEncoderLayer.new(d_model, nhead, dim_feedforward: dim_feedforward, dropout: dropout, activation: activation) }
-        encoder_norm = LayerNorm.new(d_model)
+        encoder_norm = Torch::NN::LayerNorm.new(d_model)
         @encoder = TransformerEncoder.new(encoder_layers, encoder_norm, d_model, input_vocab_size, dropout)
       end
 
@@ -42,12 +42,12 @@ module Torch::NN
         @decoder = custom_decoder
       else
         decoder_layers = num_decoder_layers.times.map { TransformerDecoderLayer.new(d_model, nhead, dim_feedforward: dim_feedforward, dropout: dropout, activation: activation) }
-        decoder_norm = LayerNorm.new(d_model)
+        decoder_norm = Torch::NN::LayerNorm.new(d_model)
         @decoder = TransformerDecoder.new(decoder_layers, decoder_norm, d_model, target_vocab_size, dropout)
       end
 
-      @linear = Linear.new(d_model, target_vocab_size)
-      @softmax = LogSoftmax.new(dim: -1)
+      @linear = Torch::NN::Linear.new(d_model, target_vocab_size)
+      @softmax = Torch::NN::LogSoftmax.new(dim: -1)
       _reset_parameters()
 
       @d_model = d_model
@@ -110,7 +110,7 @@ module Torch::NN
 
     def _reset_parameters
       parameters.each do |p|
-        Init.xavier_uniform!(p) if p.dim > 1
+        Torch::NN::Init.xavier_uniform!(p) if p.dim > 1
       end
     end
   end
@@ -186,14 +186,14 @@ module Torch::NN
       super()
       @self_attn = MultiheadAttention.new(d_model, nhead, dropout: dropout)
       # Implementation of Feedforward model
-      @linear1 = Linear.new(d_model, dim_feedforward)
-      @dropout = Dropout.new(p: dropout)
-      @linear2 = Linear.new(dim_feedforward, d_model)
+      @linear1 = Torch::NN::Linear.new(d_model, dim_feedforward)
+      @dropout = Torch::NN::Dropout.new(p: dropout)
+      @linear2 = Torch::NN::Linear.new(dim_feedforward, d_model)
 
-      @norm1 = LayerNorm.new(d_model)
-      @norm2 = LayerNorm.new(d_model)
-      @dropout1 = Dropout.new(p: dropout)
-      @dropout2 = Dropout.new(p: dropout)
+      @norm1 = Torch::NN::LayerNorm.new(d_model)
+      @norm2 = Torch::NN::LayerNorm.new(d_model)
+      @dropout1 = Torch::NN::Dropout.new(p: dropout)
+      @dropout2 = Torch::NN::Dropout.new(p: dropout)
 
       @activation = _get_activation_fn(activation)
     end
@@ -300,16 +300,16 @@ module Torch::NN
       @self_attn = MultiheadAttention.new(d_model, nhead, dropout: dropout)
       @multihead_attn = MultiheadAttention.new(d_model, nhead, dropout: dropout)
       # Implementation of Feedforward model
-      @linear1 = Linear.new(d_model, dim_feedforward)
-      @dropout = Dropout.new(p: dropout)
-      @linear2 = Linear.new(dim_feedforward, d_model)
+      @linear1 = Torch::NN::Linear.new(d_model, dim_feedforward)
+      @dropout = Torch::NN::Dropout.new(p: dropout)
+      @linear2 = Torch::NN::Linear.new(dim_feedforward, d_model)
 
-      @norm1 = LayerNorm.new(d_model)
-      @norm2 = LayerNorm.new(d_model)
-      @norm3 = LayerNorm.new(d_model)
-      @dropout1 = Dropout.new(p: dropout)
-      @dropout2 = Dropout.new(p: dropout)
-      @dropout3 = Dropout.new(p: dropout)
+      @norm1 = Torch::NN::LayerNorm.new(d_model)
+      @norm2 = Torch::NN::LayerNorm.new(d_model)
+      @norm3 = Torch::NN::LayerNorm.new(d_model)
+      @dropout1 = Torch::NN::Dropout.new(p: dropout)
+      @dropout2 = Torch::NN::Dropout.new(p: dropout)
+      @dropout3 = Torch::NN::Dropout.new(p: dropout)
 
       @activation = _get_activation_fn(activation)
     end
@@ -346,7 +346,7 @@ module Torch::NN
     # PositionalEncoding module injects some information about the relative or absolute position of the tokens in the sequence. The positional encodings have the same dimension as the embeddings so that the two can be summed. Here, we use sine and cosine functions of different frequencies.
     def initialize(d_model, dropout: 0.1, max_len: 5000)
       super()
-      @dropout = Dropout.new(p: dropout)
+      @dropout = Torch::NN::Dropout.new(p: dropout)
 
       pe = Torch.zeros(max_len, d_model)
       position = Torch.arange(0, max_len, dtype: :float).unsqueeze(1)
