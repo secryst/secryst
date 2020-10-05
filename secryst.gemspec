@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.summary       = "Seq2seq transformer for transliteration in Ruby."
   spec.description   = %q{Seq2seq transformer for transliteration in Ruby.}
   spec.homepage      = "https://github.com/secryst/secryst"
-  spec.license       = "MIT"
+  spec.license       = "BSD-2-Clause"
 
   spec.authors       = ['project_contibutors']
 
@@ -21,5 +21,8 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 2.7"
 
-  spec.add_dependency "torch-rb", ">= 0.4.0"
+  spec.add_dependency "torch-rb", '~> 0.4'
+
+  spec.add_development_dependency "rake"
+  spec.add_development_dependency "rspec"
 end
