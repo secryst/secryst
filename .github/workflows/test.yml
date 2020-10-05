@@ -99,10 +99,10 @@ jobs:
 
       - name: Train model
         run: |
-          echo "Running 'main.rb'"
-          bundle exec ./main.rb
+          echo "Running 'examples/training.rb'"
+          bundle exec examples/training.rb
 
       - name: Test model
         run: |
-          echo "Running 'translate.rb'"
-          bundle exec ruby translate.rb
+          echo "Running 'examples/translating.rb'"
+          bundle exec examples/translating.rb
