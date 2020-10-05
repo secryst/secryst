@@ -17,11 +17,12 @@ Gem::Specification.new do |spec|
   spec.files         += ['README.adoc']
   spec.require_path  = "lib"
   spec.bindir        = "bin"
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
+  spec.executables   << "secryst"
 
   spec.required_ruby_version = ">= 2.7"
 
   spec.add_dependency "torch-rb", '~> 0.4'
+  spec.add_dependency "thor", "~> 1.0"
 
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"

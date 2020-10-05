@@ -1,0 +1,41 @@
+#!/usr/bin/env ruby
+
+require "thor"
+require "secryst-trainer"
+
+class MyCLI < Thor
+  desc "train", "Train the model on dataset"
+  method_option :model, :aliases => "-m", :desc => "Model architecture: currently only transformer", :required => true
+  method_option :data_input, :aliases => "-i", :desc => "Specify file with input sequences", :required => true
+  method_option :data_target, :aliases => "-t", :desc => "Specify file with target sequences", :required => true
+  method_option :hyperparameters, :aliases => "-h", :type => :hash, :desc => "Specify model hyperparameters", :default => {}
+  method_option :max_epochs, :aliases => "-e", :desc => "Maximum epochs count"
+  method_option :log_interval, :aliases => "-l", :desc => "Training logging interval"
+  method_option :checkpoint_every, :aliases => "-c", :desc => "Save checkpoint every N epochs"
+  method_option :checkpoint_dir, :desc => "Directory where to save checkpoints"
+  method_option :scheduler_step_size, :desc => "Scheduler step size", :default => 70
+  method_option :gamma, :desc => "Scheduler gamma", :default => 0.9
+  method_option :batch_size, :aliases => "-b", :desc => "Batch size", :default => 32
+  method_option :lr, :desc => "Learning rate", :default => 0.1
+
+  def train()
+    trainer = Secryst::Trainer.new({
+      model: options[:model],
+      batch_size: options[:batch_size].to_i,
+      lr: options[:lr].to_f,
+      data_input: options[:data_input],
+      data_target: options[:data_target],
+      max_epochs: options[:max_epochs].to_i,
+      log_interval: options[:log_interval].to_i,
+      checkpoint_every: options[:checkpoint_every].to_i,
+      checkpoint_dir: options[:checkpoint_dir],
+      scheduler_step_size: options[:scheduler_step_size].to_i,
+      gamma: options[:gamma].to_f,
+      hyperparameters: options[:hyperparameters].transform_keys(&:to_sym).transform_values {|v| v.include?('.') ? v.to_f : v.match(/^\d+$/) ? v.to_i : v.to_s}
+    })
+
+    trainer.train()
+  end
+end
+
+MyCLI.start
