@@ -1,3 +1,5 @@
+require 'json'
+
 # only if training?
 require "numo/linalg/use/openblas"
 

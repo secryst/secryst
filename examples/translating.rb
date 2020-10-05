@@ -2,7 +2,8 @@ require "secryst"
 
 kh2en = Secryst::Translator.new({
   model: 'transformer',
-  data: 'kh-rom-small',
+  vocabs_dir: 'checkpoints',
+  model_file: 'checkpoints/checkpoint-120.pth',
   hyperparameters: {
     d_model: 64,
     nhead: 8,
@@ -12,7 +13,6 @@ kh2en = Secryst::Translator.new({
     dropout: 0.05, # 0.1
     activation: 'relu'
   },
-  model_file: 'checkpoints/checkpoint-120.pth'
 })
 
 puts kh2en.translate('បាត់ទៅណា?')

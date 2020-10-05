@@ -15,7 +15,9 @@ module Secryst
       @log_interval = log_interval
       @checkpoint_every = checkpoint_every
       @checkpoint_dir = checkpoint_dir
+      FileUtils.mkdir_p(@checkpoint_dir)
       generate_vocabs_and_data()
+      save_vocabs()
 
       if model == 'transformer'
         @model = Torch::NN::Transformer.new(hyperparameters.merge({
@@ -79,7 +81,6 @@ module Secryst
           end
 
           if epoch > 0 && epoch % @checkpoint_every == 0
-            FileUtils.mkdir_p(@checkpoint_dir)
             Torch.save(@model.state_dict, "#{@checkpoint_dir}/checkpoint-#{epoch}.pth")
           end
 
@@ -206,6 +207,11 @@ module Secryst
       end
 
       return batches
+    end
+
+    def save_vocabs
+      File.write("#{@checkpoint_dir}/input_vocab.json", JSON.generate(@input_vocab.freqs))
+      File.write("#{@checkpoint_dir}/target_vocab.json", JSON.generate(@target_vocab.freqs))
     end
   end
 end

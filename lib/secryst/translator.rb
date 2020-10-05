@@ -1,13 +1,10 @@
 module Secryst
   class Translator
-    def initialize(model:, data:, hyperparameters:, model_file:)
-      data_dir = File.expand_path("../../data", __dir__)
-      @data_input = File.readlines("#{data_dir}/#{data}/input.csv", chomp: true)
-      @data_target = File.readlines("#{data_dir}/#{data}/target.csv", chomp: true)
-
+    def initialize(model:, vocabs_dir:, hyperparameters:, model_file:)
       @device = "cpu"
+      @vocabs_dir = vocabs_dir
 
-      generate_vocabs()
+      load_vocabs()
 
       if model == 'transformer'
         @model = Torch::NN::Transformer.new(hyperparameters.merge({
@@ -44,30 +41,9 @@ module Secryst
       puts "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
     end
 
-    private def generate_vocabs
-      input_texts = []
-      target_texts = []
-      input_vocab_counter = Hash.new(0)
-      target_vocab_counter = Hash.new(0)
-
-      @data_input.each do |input_text|
-        input_text.strip!
-        input_texts.push(input_text)
-        input_text.each_char do |char|
-          input_vocab_counter[char] += 1
-        end
-      end
-
-      @data_target.each do |target_text|
-        target_text.strip!
-        target_texts.push(target_text)
-        target_text.each_char do |char|
-          target_vocab_counter[char] += 1
-        end
-      end
-
-      @input_vocab = TorchText::Vocab.new(input_vocab_counter)
-      @target_vocab = TorchText::Vocab.new(target_vocab_counter)
+    private def load_vocabs
+      @input_vocab = TorchText::Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/input_vocab.json")))
+      @target_vocab = TorchText::Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/target_vocab.json")))
     end
   end
 end

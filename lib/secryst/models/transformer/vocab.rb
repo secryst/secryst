@@ -1,7 +1,7 @@
 module TorchText
   class Vocab
     UNK = "<unk>"
-    attr_reader :stoi, :itos
+    attr_reader :stoi, :itos, :freqs
 
     def initialize(
       counter, max_size: nil, min_freq: 1, specials: ["<unk>", "<pad>", "<sos>", "<eos>"],
