@@ -39,7 +39,7 @@ module Secryst
         output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
       end
 
-      puts "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
+      "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
     end
 
     private

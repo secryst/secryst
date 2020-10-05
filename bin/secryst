@@ -1,0 +1,33 @@
+#!/usr/bin/env ruby
+
+require "thor"
+require "secryst"
+
+class MyCLI < Thor
+  desc "translate", "Translate input sequence using specified model"
+  method_option :input_text, :aliases => "-i", :desc => "String of text to translate"
+  method_option :input_text_file, :aliases => "-t", :desc => "Path to file with text to translate"
+  method_option :model, :aliases => "-m", :desc => "Model architecture: currently only transformer", :required => true
+  method_option :vocabs_dir, :aliases => "-v", :desc => "Specify folder where input_vocab.json and target_vocab.json is stored", :required => true
+  method_option :model_file, :aliases => "-f", :desc => "Specify model checkpoint .pth file", :required => true
+  method_option :hyperparameters, :aliases => "-h", :type => :hash, :desc => "Specify model hyperparameters", :default => {}
+
+  def translate()
+    translator = Secryst::Translator.new({
+      model: options[:model],
+      vocabs_dir: options[:vocabs_dir],
+      model_file: options[:model_file],
+      hyperparameters: options[:hyperparameters].transform_keys(&:to_sym).transform_values {|v| v.include?('.') ? v.to_f : v.match(/^\d+$/) ? v.to_i : v.to_s}
+    })
+
+    if options[:input_text]
+      puts translator.translate(options[:input_text])
+    elsif options[:input_text_file]
+      File.readlines(options[:input_text_file]).each do |line|
+        puts translator.translate(line)
+      end
+    end
+  end
+end
+
+MyCLI.start
