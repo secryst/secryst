@@ -77,6 +77,30 @@ $ bundle exec gem uninstall numo-linalg
 ----
 
 
+== Usage
+
+The Khmer transliteration system is implemented as an example.
+
+To run the training:
+
+[source,sh]
+----
+$ bundle exec examples/training.rb
+----
+
+To run translations through the transformer:
+
+[source,sh]
+----
+$ bundle exec examples/translating.rb
+----
+
+* Checkpoint files are generated as `examples/checkpoints/*.pth`
+* Vocab files are generated `examples/checkpoints/{input,target}_vocab.json`
+
+In order to re-use a model, you need both the `.pth` file and
+the corresponding vocab files.
+
 
 == References
 
