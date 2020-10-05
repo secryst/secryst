@@ -1,9 +1,11 @@
+#!/usr/bin/env ruby
+
 require "secryst"
 
 kh2en = Secryst::Translator.new({
   model: 'transformer',
-  vocabs_dir: 'checkpoints',
-  model_file: 'checkpoints/checkpoint-120.pth',
+  vocabs_dir: File.expand_path('./checkpoints/', __dir__),
+  model_file: File.expand_path('./checkpoints/checkpoint-150.pth', __dir__),
   hyperparameters: {
     d_model: 64,
     nhead: 8,

@@ -1,9 +1,22 @@
 module Secryst
   class Trainer
-    def initialize(model:, batch_size:, lr:, data:, hyperparameters:, max_epochs: nil, log_interval: 1, checkpoint_every:, checkpoint_dir:, scheduler_step_size:, gamma:)
-      data_dir = File.expand_path("../../data", __dir__)
-      @data_input = File.readlines("#{data_dir}/#{data}/input.csv", chomp: true)
-      @data_target = File.readlines("#{data_dir}/#{data}/target.csv", chomp: true)
+
+    def initialize(
+      model:,
+      batch_size:,
+      lr:,
+      data_input:,
+      data_target:,
+      hyperparameters:,
+      max_epochs: nil,
+      log_interval: 1,
+      checkpoint_every:,
+      checkpoint_dir:,
+      scheduler_step_size:,
+      gamma:
+    )
+      @data_input = File.readlines(data_input, chomp: true)
+      @data_target = File.readlines(data_target, chomp: true)
 
       @device = "cpu"
       @lr = lr
@@ -29,7 +42,7 @@ module Secryst
       end
     end
 
-    def train()
+    def train
       best_model = nil
       best_val_loss = 1.0/0.0 # infinity
       if @model_name == 'transformer'
@@ -104,7 +117,7 @@ module Secryst
                 tgt_key_padding_mask: tgt_key_padding_mask,
                 memory_key_padding_mask: src_key_padding_mask,
               }
-              output = @model.call(inputs, decoder_inputs, opts)
+              output = @model.call(inputs, decoder_inputs, **opts)
               output_flat = output.transpose(0,1).reshape(-1, ntokens)
 
               total_loss += criterion.call(output_flat, targets.t.view(-1)).item
@@ -172,7 +185,7 @@ module Secryst
 
     def pad(arr, length, no_eos:false, no_sos:false)
       if !no_eos
-        arr =  arr + ["<eos>"]
+        arr = arr + ["<eos>"]
       end
       if !no_sos
         arr = ["<sos>"] + arr
@@ -185,9 +198,9 @@ module Secryst
     end
 
     def batchify(data)
-       batches = []
+      batches = []
 
-      ( 1 + data.length / @batch_size ).times do |i|
+      (1 + data.length / @batch_size).times do |i|
         input_data = data[i*@batch_size, @batch_size].transpose[0]
         decoder_input_data = data[i*@batch_size, @batch_size].transpose[1]
         target_data = data[i*@batch_size, @batch_size].transpose[1]
@@ -206,7 +219,7 @@ module Secryst
         ]
       end
 
-      return batches
+      batches
     end
 
     def save_vocabs

@@ -38,6 +38,7 @@ module Secryst
         break if @target_vocab.itos[prediction[i]] == '<eos>'
         output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
       end
+
       puts "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
     end
 

@@ -1,8 +1,11 @@
+#!/usr/bin/env ruby
+
 require "secryst-trainer"
 
-kh2en = Secryst::Trainer.new({
+kh2en = Secryst::Trainer.new(
   model: 'transformer',
-  data: 'kh-rom',
+  data_input: File.expand_path('../data/kh-rom/input.csv', __dir__),
+  data_target: File.expand_path('../data/kh-rom/target.csv', __dir__),
   batch_size: 32,
   lr: 0.1,
   scheduler_step_size: 70,
@@ -18,8 +21,7 @@ kh2en = Secryst::Trainer.new({
     dim_feedforward: 256,
     dropout: 0.05,
     activation: 'relu',
-  },
+  }
+)
 
-})
-
-kh2en.train()
+kh2en.train
