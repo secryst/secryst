@@ -106,3 +106,21 @@ jobs:
         run: |
           echo "Running 'examples/translating.rb'"
           bundle exec examples/translating.rb
+
+      - name: Test translate CLI
+        run: |
+          echo "Running 'secryst translate'"
+          bundle exec secryst translate \
+            --input_text_file=examples/to-translate.txt \
+            --model-file=examples/checkpoints/checkpoint-500.pth \
+            --vocabs-dir=examples/checkpoints/
+
+      - name: Test train CLI
+        run: |
+          echo "Running 'secryst-trainer train'"
+          bundle exec secryst-trainer train \
+            -i 'data/kh-rom-small/input.csv' \
+            -t 'data/kh-rom-small/target.csv' \
+            --batch-size=32 --max-epochs=500 --log-interval=1 \
+            --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
+            --gamma=0.2
