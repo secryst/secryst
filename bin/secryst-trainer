@@ -9,10 +9,10 @@ class SecrystTrainerCli < Thor
   method_option :data_input, :aliases => "-i", :desc => "Specify file with input sequences", :required => true
   method_option :data_target, :aliases => "-t", :desc => "Specify file with target sequences", :required => true
   method_option :hyperparameters, :aliases => "-h", :type => :hash, :desc => "Specify model hyperparameters", :default => {}
-  method_option :max_epochs, :aliases => "-e", :type => :numeric, :desc => "Maximum epochs count"
+  method_option :max_epochs, :aliases => "-e", :type => :numeric, :desc => "Maximum epochs count", :required => true
   method_option :log_interval, :aliases => "-l", :type => :numeric, :desc => "Training logging interval"
   method_option :checkpoint_every, :aliases => "-c", :type => :numeric, :desc => "Save checkpoint every N epochs"
-  method_option :checkpoint_dir, :desc => "Directory where to save checkpoints"
+  method_option :checkpoint_dir, :desc => "Directory where to save checkpoints", :required => true
   method_option :scheduler_step_size, :desc => "Scheduler step size", :type => :numeric, :default => 70
   method_option :gamma, :desc => "Scheduler gamma", :type => :numeric, :default => 0.9
   method_option :batch_size, :aliases => "-b", :desc => "Batch size", :type => :numeric, :default => 32
