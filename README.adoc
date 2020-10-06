@@ -21,14 +21,54 @@ The goal is to allow:
 
 Currently Secryst works with the Khmer Romanization system as cited below.
 
+Secryst is composed of two separate gems:
+
+* `secryst` is for users of trained models
+* `secryst-trainer` is for users who wish to train models
+
 
 == Prerequisites
+
+=== General (and Secryst)
 
 * Ruby 2.7 (*MUST* - 2.6 does not work with the latest torch-rb)
 
 * `libtorch` (1.6.0)
 * `fftw`
 * `gsl`
+
+
+On Ubuntu:
+
+[source,sh]
+----
+$ sudo apt-get -y install libfftw3-dev libgsl-dev unzip automake \
+  make gcc g++ libtorch libtorch-dev
+$ wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+$ unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+
+$ gem install bundler -v "~> 2"
+$ bundle config build.torch-rb \
+    --with-torch-dir=$(pwd)/libtorch
+
+$ bundle install
+----
+
+
+On macOS:
+
+[source,sh]
+----
+$ brew install libtorch gsl fftw automake gcc
+$ gem install bundler -v "~> 2"
+$ bundle install
+----
+
+
+=== Secryst trainer
+
+In order to use Secryst Trainer two additional components are necessary:
+
 * `lapack`
 * `openblas`
 
@@ -79,6 +119,132 @@ $ bundle exec gem uninstall numo-linalg
 
 == Usage
 
+Secryst provides a CLI for training models and re-using trained models.
+
+NOTE: In order to use the trained model, you must use the identical
+hyperparameters to those used for training, and use the
+identical vocab files (source, target) generated prior to training.
+
+=== Using trained models
+
+You will need to install the `secryst` gem (prerequisites must be fulfilled):
+
+[source,sh]
+----
+$ gem install secryst
+----
+
+To utilize a trained model:
+
+[source,sh]
+----
+# Transform all individual lines of `--input_text_file`.
+# Specifying:
+#   - trained model at `--model-file`
+#   - vocabs at `--vocabs-dir`, which includes the files
+#     `input_vocab.json` and `target_vocab.json`
+
+secryst translate \
+  --input_text_file=examples/to-translate.txt \
+  --model-file=examples/checkpoints/checkpoint-500.pth \
+  --vocabs-dir=examples/checkpoints
+----
+
+Specifying all possible options:
+
+[source,sh]
+----
+# Transform all individual lines of `--input_text_file`.
+# Specifying:
+#   - model type is `transformer` (the only type supported now)
+#   - trained model at `--model-file`
+#   - vocabs at `--vocabs-dir`, which includes the files
+#     `input_vocab.json` and `target_vocab.json`
+#   - hyperparameters in a key-value pair format
+
+secryst translate \
+  --input_text_file=examples/to-translate.txt \
+  --model=transformer \
+  --model-file=examples/checkpoints/checkpoint-500.pth \
+  --vocabs-dir=examples/checkpoints \
+  -h d_model:64 nhead:8 num_encoder_layers:4 num_decoder_layers:4 \
+    dim_feedforward:256 dropout:0.05 activation:relu \
+----
+
+
+=== Training models
+
+You will need to install the `secryst-trainer` gem (prerequisites must be fulfilled):
+
+[source,sh]
+----
+$ gem install secryst-trainer
+----
+
+NOTE: The `secryst` gem will be automatically installed alongside `secryst-trainer`.
+
+
+Training a typical model:
+
+[source,sh]
+----
+# Train all individual lines of the file specified in `-i` to the
+# corresponding line in target `-t`.
+#
+# Specifying:
+#   - `max-epochs` specifies how many epochs training will be run
+#   - `log-interval` specifies how often should Secryst report on
+#     learning parameters.
+#   - `checkpoint-every` indicates how often Secryst saves a checkpoint
+#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.pth`.
+#   - `checkpoint_dir` specifies the directory to store checkpoint files.
+
+secryst-trainer train \
+  -i 'data/kh-rom-small/input.csv' \
+  -t 'data/kh-rom-small/target.csv' \
+  --max-epochs=500 \
+  --log-interval=1 \
+  --checkpoint-every=50 \
+  --checkpoint_dir=examples/checkpoints
+----
+
+
+Training with all options:
+
+[source,sh]
+----
+# Train all individual lines of the file specified in `-i` to the
+# corresponding line in target `-t`.
+#
+# Specifying:
+#   - `batch-size` specifies the batch size for training
+#   - `max-epochs` specifies how many epochs training will be run
+#   - `log-interval` specifies how often should Secryst report on
+#     learning parameters.
+#   - `checkpoint-every` indicates how often Secryst saves a checkpoint
+#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.pth`.
+#   - `checkpoint_dir` specifies the directory to store checkpoint
+#     and vocab files.
+#   - `gamma` specifies the gamma value used
+#   - hyperparameters in a key-value pair format
+
+secryst-trainer train --model=transformer \
+  -i 'data/kh-rom-small/input.csv' \
+  -t 'data/kh-rom-small/target.csv' \
+  --batch-size=32 \
+  --max-epochs=500 \
+  --log-interval=1 \
+  --checkpoint-every=50 \
+  --checkpoint_dir=checkpoints \
+  --gamma=0.2 \
+  -h d_model:64 nhead:8 num_encoder_layers:4 num_decoder_layers:4 \
+    dim_feedforward:256 dropout:0.05 activation:relu
+----
+
+
+
+== Examples
+
 The Khmer transliteration system is implemented as an example.
 
 To run the training:
@@ -100,6 +266,8 @@ $ bundle exec examples/translating.rb
 
 In order to re-use a model, you need both the `.pth` file and
 the corresponding vocab files.
+
+
 
 
 == References
