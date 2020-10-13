@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = "bin"
   spec.executables   << "secryst"
 
-  spec.required_ruby_version = ">= 2.7"
+  spec.required_ruby_version = ">= 2.6"
 
   spec.add_dependency "torch-rb", '~> 0.4'
   spec.add_dependency "thor", "~> 1.0"
