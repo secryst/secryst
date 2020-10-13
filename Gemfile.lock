@@ -45,7 +45,7 @@ GEM
       rspec-support (~> 3.9.0)
     rspec-support (3.9.3)
     thor (1.0.1)
-    torch-rb (0.4.0)
+    torch-rb (0.4.1)
       rice (>= 2.2)
 
 PLATFORMS

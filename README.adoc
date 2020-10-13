@@ -31,8 +31,6 @@ Secryst is composed of two separate gems:
 
 === General (and Secryst)
 
-* Ruby 2.7 (*MUST* - 2.6 does not work with the latest torch-rb)
-
 * `libtorch` (1.6.0)
 * `fftw`
 * `gsl`
