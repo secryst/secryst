@@ -252,6 +252,7 @@ module Secryst
       # Zip generation
       input_filenames = ['model.pth', 'metadata.yaml', 'vocabs.yaml']
       zipfile_name = "#{@checkpoint_dir}/checkpoint-#{epoch}.zip"
+      FileUtils.rm(zipfile_name) if File.exists?(zipfile_name)
       Zip::File.open(zipfile_name, Zip::File::CREATE) do |zipfile|
         input_filenames.each do |filename|
           zipfile.add(filename, File.join(@checkpoint_dir, filename))
@@ -262,9 +263,9 @@ module Secryst
     end
 
     def cleanup_files
-      FileUtils.rm("#{@checkpoint_dir}/model.pth")
-      FileUtils.rm("#{@checkpoint_dir}/metadata.yaml")
-      FileUtils.rm("#{@checkpoint_dir}/vocabs.yaml")
+      FileUtils.rm("#{@checkpoint_dir}/model.pth") if File.exists?("#{@checkpoint_dir}/model.pth")
+      FileUtils.rm("#{@checkpoint_dir}/metadata.yaml") if File.exists?("#{@checkpoint_dir}/metadata.yaml")
+      FileUtils.rm("#{@checkpoint_dir}/vocabs.yaml") if File.exists?("#{@checkpoint_dir}/vocabs.yaml")
     end
   end
 end
