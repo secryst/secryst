@@ -119,10 +119,6 @@ $ bundle exec gem uninstall numo-linalg
 
 Secryst provides a CLI for training models and re-using trained models.
 
-NOTE: In order to use the trained model, you must use the identical
-hyperparameters to those used for training, and use the
-identical vocab files (source, target) generated prior to training.
-
 === Using trained models
 
 You will need to install the `secryst` gem (prerequisites must be fulfilled):
@@ -139,36 +135,11 @@ To utilize a trained model:
 # Transform all individual lines of `--input_text_file`.
 # Specifying:
 #   - trained model at `--model-file`
-#   - vocabs at `--vocabs-dir`, which includes the files
-#     `input_vocab.json` and `target_vocab.json`
 
 secryst translate \
   --input_text_file=examples/to-translate.txt \
-  --model-file=examples/checkpoints/checkpoint-500.pth \
-  --vocabs-dir=examples/checkpoints
+  --model-file=examples/checkpoints/checkpoint-500.zip
 ----
-
-Specifying all possible options:
-
-[source,sh]
-----
-# Transform all individual lines of `--input_text_file`.
-# Specifying:
-#   - model type is `transformer` (the only type supported now)
-#   - trained model at `--model-file`
-#   - vocabs at `--vocabs-dir`, which includes the files
-#     `input_vocab.json` and `target_vocab.json`
-#   - hyperparameters in a key-value pair format
-
-secryst translate \
-  --input_text_file=examples/to-translate.txt \
-  --model=transformer \
-  --model-file=examples/checkpoints/checkpoint-500.pth \
-  --vocabs-dir=examples/checkpoints \
-  -h d_model:64 nhead:8 num_encoder_layers:4 num_decoder_layers:4 \
-    dim_feedforward:256 dropout:0.05 activation:relu \
-----
-
 
 === Training models
 
@@ -194,7 +165,7 @@ Training a typical model:
 #   - `log-interval` specifies how often should Secryst report on
 #     learning parameters.
 #   - `checkpoint-every` indicates how often Secryst saves a checkpoint
-#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.pth`.
+#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.zip`.
 #   - `checkpoint_dir` specifies the directory to store checkpoint files.
 
 secryst-trainer train \
@@ -220,9 +191,8 @@ Training with all options:
 #   - `log-interval` specifies how often should Secryst report on
 #     learning parameters.
 #   - `checkpoint-every` indicates how often Secryst saves a checkpoint
-#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.pth`.
-#   - `checkpoint_dir` specifies the directory to store checkpoint
-#     and vocab files.
+#     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.zip`.
+#   - `checkpoint_dir` specifies the directory to store checkpoint.
 #   - `gamma` specifies the gamma value used
 #   - hyperparameters in a key-value pair format
 
@@ -259,12 +229,8 @@ To run translations through the transformer:
 $ bundle exec examples/translating.rb
 ----
 
-* Checkpoint files are generated as `examples/checkpoints/*.pth`
-* Vocab files are generated `examples/checkpoints/{input,target}_vocab.json`
-
-In order to re-use a model, you need both the `.pth` file and
-the corresponding vocab files.
-
+* Checkpoint files are generated as `examples/checkpoints/*.zip`
+* It includes metadata.yaml, model.pth amnd vocabs.yaml files
 
 
 

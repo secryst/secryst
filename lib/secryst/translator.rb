@@ -1,21 +1,45 @@
 module Secryst
   class Translator
-    def initialize(model:, vocabs_dir:, hyperparameters:, model_file:)
+    def initialize(model_file:)
+      model_name, model, metadata, model_state_dict, vocabs = nil
       @device = "cpu"
-      @vocabs_dir = vocabs_dir
+      # Unzip model in memory
+      Zip::File.open(model_file) do |zip_file|
+        metadata = zip_file.glob('metadata.yaml').first
+        raise 'metadata.yaml is missing in model zip!' if !metadata
+        metadata = YAML.load(metadata.get_input_stream.read)
 
-      load_vocabs
+        model = zip_file.glob('model.pth').first
+        raise 'model.pth is missing in model zip!' if !model
+        model_state_dict = Torch.send :to_ruby, Torch._load(model.get_input_stream.read)
 
-      if model == 'transformer'
-        @model = Secryst::Transformer.new(hyperparameters.merge({
+        vocabs = zip_file.glob('vocabs.yaml').first
+        raise 'vocabs.yaml is missing in model zip!' if !vocabs
+        vocabs = YAML.load(vocabs.get_input_stream.read)
+      end
+
+      model_name = metadata.delete("name")
+      # load vocabs
+      @input_vocab = Vocab.new(vocabs["input"])
+      @target_vocab = Vocab.new(vocabs["target"])
+
+      if model_name == 'transformer'
+        @model = Secryst::Transformer.new({
+          d_model: metadata[:d_model],
+          nhead: metadata[:nhead],
+          num_encoder_layers: metadata[:num_encoder_layers],
+          num_decoder_layers: metadata[:num_decoder_layers],
+          dim_feedforward: metadata[:dim_feedforward],
+          dropout: metadata[:dropout],
+          activation: metadata[:activation],
           input_vocab_size: @input_vocab.length,
           target_vocab_size: @target_vocab.length,
-        }))
+        })
       else
         raise ArgumentError, 'Only transformer model is currently supported'
       end
 
-      @model.load_state_dict(Torch.load(model_file))
+      @model.load_state_dict(model_state_dict)
       @model.eval
     end
 
@@ -40,12 +64,6 @@ module Secryst
       end
 
       "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
-    end
-
-    private
-    def load_vocabs
-      @input_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/input_vocab.json")))
-      @target_vocab = Vocab.new(JSON.parse(File.read("#{@vocabs_dir}/target_vocab.json")))
     end
   end
 end

@@ -2,11 +2,13 @@ PATH
   remote: .
   specs:
     secryst (0.1.0)
+      rubyzip (~> 2.3)
       thor (~> 1.0)
       torch-rb (~> 0.4)
     secryst-trainer (0.1.0)
       numo (~> 0.1)
       numo-linalg (~> 0.1)
+      rubyzip (~> 2.3)
       secryst (= 0.1.0)
       thor (~> 1.0)
       torch-rb (~> 0.4)
@@ -44,6 +46,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.9.0)
     rspec-support (3.9.3)
+    rubyzip (2.3.0)
     thor (1.0.1)
     torch-rb (0.4.1)
       rice (>= 2.2)
