@@ -30,14 +30,18 @@ module Secryst
       @checkpoint_dir = checkpoint_dir
       FileUtils.mkdir_p(@checkpoint_dir)
       generate_vocabs_and_data
+
+      @hyperparameters = hyperparameters.merge({
+        input_vocab_size: @input_vocab.length,
+        target_vocab_size: @target_vocab.length,
+      })
+
       save_vocabs
+      save_metadata
 
       case model
       when 'transformer'
-        @model = Secryst::Transformer.new(hyperparameters.merge({
-          input_vocab_size: @input_vocab.length,
-          target_vocab_size: @target_vocab.length,
-        }))
+        @model = Secryst::Transformer.new(@hyperparameters)
       else
         raise ArgumentError, 'Only transformer model is currently supported'
       end
@@ -98,8 +102,7 @@ module Secryst
         end
 
         if epoch > 0 && epoch % @checkpoint_every == 0
-          puts ">> Saving checkpoint '#{@checkpoint_dir}/checkpoint-#{epoch}.pth'"
-          Torch.save(@model.state_dict, "#{@checkpoint_dir}/checkpoint-#{epoch}.pth")
+          save_model(epoch)
         end
 
         # Evaluate
@@ -142,6 +145,8 @@ module Secryst
         epoch += 1
         break if @max_epochs && @max_epochs < epoch
       end
+    ensure
+      cleanup_files
     end
 
     private
@@ -168,8 +173,8 @@ module Secryst
         end
       end
 
-      @input_vocab = Vocab.new(input_vocab_counter)
-      @target_vocab = Vocab.new(target_vocab_counter)
+      @input_vocab = Vocab.new(input_vocab_counter.keys)
+      @target_vocab = Vocab.new(target_vocab_counter.keys)
 
       # Generate train, eval, and test batches
       seed = 1
@@ -228,8 +233,38 @@ module Secryst
     end
 
     def save_vocabs
-      File.write("#{@checkpoint_dir}/input_vocab.json", JSON.generate(@input_vocab.freqs))
-      File.write("#{@checkpoint_dir}/target_vocab.json", JSON.generate(@target_vocab.freqs))
+      File.write("#{@checkpoint_dir}/vocabs.yaml", {
+        "input"  => @input_vocab.itos,
+        "target" => @target_vocab.itos
+      }.to_yaml)
+    end
+
+    def save_metadata
+      File.write("#{@checkpoint_dir}/metadata.yaml", {
+        "name"  => "transformer"
+      }.merge(@hyperparameters).to_yaml)
+    end
+
+    def save_model(epoch)
+      start_saving = Time.now
+      Torch.save(@model.state_dict, "#{@checkpoint_dir}/model.pth")
+
+      # Zip generation
+      input_filenames = ['model.pth', 'metadata.yaml', 'vocabs.yaml']
+      zipfile_name = "#{@checkpoint_dir}/checkpoint-#{epoch}.zip"
+      Zip::File.open(zipfile_name, Zip::File::CREATE) do |zipfile|
+        input_filenames.each do |filename|
+          zipfile.add(filename, File.join(@checkpoint_dir, filename))
+        end
+      end
+
+      puts ">> Saved checkpoint '#{@checkpoint_dir}/checkpoint-#{epoch}.zip' in #{(Time.now - start_saving).round(3)}s"
+    end
+
+    def cleanup_files
+      FileUtils.rm("#{@checkpoint_dir}/model.pth")
+      FileUtils.rm("#{@checkpoint_dir}/metadata.yaml")
+      FileUtils.rm("#{@checkpoint_dir}/vocabs.yaml")
     end
   end
 end

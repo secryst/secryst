@@ -1,4 +1,5 @@
-require 'json'
+require 'yaml'
+require 'zip'
 
 # torch
 require "torch-rb"

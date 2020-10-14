@@ -23,6 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "torch-rb", '~> 0.4'
   spec.add_dependency "thor", "~> 1.0"
+  spec.add_dependency "rubyzip", "~> 2.3"
 
   spec.add_development_dependency "rake"
   spec.add_development_dependency "rspec"

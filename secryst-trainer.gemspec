@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency "numo", '~> 0.1'
   spec.add_dependency "numo-linalg", '~> 0.1'
   spec.add_dependency "thor", "~> 1.0"
+  spec.add_dependency "rubyzip", "~> 2.3"
   spec.add_dependency "secryst", Secryst::VERSION
 
   spec.add_development_dependency "rake"
