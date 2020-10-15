@@ -14,18 +14,21 @@ module Secryst
 
       @itos += list
 
-      if specials.include?(UNK)  # hard-coded for now
-        unk_index = specials.index(UNK)  # position in list
-        # account for ordering of specials, set variable
-        @unk_index = specials_first ? unk_index : @itos.length + unk_index
-        @stoi = Hash.new(@unk_index)
+      if !specials_first && (list & specials).length == 0
+        @itos.concat(specials)
+      end
+
+      # Automatic substitution of unknown symbols
+      if @itos.include?("<unk>")
+        unk_index = @itos.index("<unk>")
+        @stoi = Hash.new(unk_index)
+      elsif @itos.include?("[UNK]")
+        unk_index = @itos.index("[UNK]")
+        @stoi = Hash.new(unk_index)
       else
         @stoi = {}
       end
 
-      if !specials_first && (list & specials).length == 0
-        @itos.concat(specials)
-      end
 
       # stoi is simply a reverse dict for itos
       @itos.each_with_index do |tok, i|

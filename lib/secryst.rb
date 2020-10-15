@@ -10,6 +10,9 @@ require "secryst/vocab"
 require "secryst/transformer"
 
 require "secryst/translator"
+require "secryst/model"
+
+require 'onnxruntime'
 
 module Secryst
   DEFAULT_HYPERPARAMETERS = {

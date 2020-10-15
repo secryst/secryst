@@ -134,7 +134,7 @@ To utilize a trained model:
 ----
 # Transform all individual lines of `--input_text_file`.
 # Specifying:
-#   - trained model at `--model-file`
+#   - trained model zip archive at `--model-file`. Must include metadata.yaml, vocabs.yaml and .pth or .onnx model file.
 
 secryst translate \
   --input_text_file=examples/to-translate.txt \
@@ -209,6 +209,28 @@ secryst-trainer train --model=transformer \
     dim_feedforward:256 dropout:0.05 activation:relu
 ----
 
+=== Importing ONNX model
+
+You can easily utilize ONNX models in Secryst as well.
+
+You need to prepare a zip file with:
+
+* .onnx model file
+* vocabs.yaml
+
+vocabs.yaml file has to contain two keys - "input" and "target" (it's okay if they are the same), which contain all tokens from vocabulary placed in original order. Like this:
+
+[source,yaml]
+----
+input:
+- [UNK]
+- ...
+target:
+- [UNK]
+- ...
+----
+
+Then just utilize model usually as described above. You can as well find the example of this in the examples folder.
 
 
 == Examples
@@ -230,7 +252,8 @@ $ bundle exec examples/translating.rb
 ----
 
 * Checkpoint files are generated as `examples/checkpoints/*.zip`
-* It includes metadata.yaml, model.pth amnd vocabs.yaml files
+* It includes metadata.yaml, model.pth and vocabs.yaml files
+
 
 
 
