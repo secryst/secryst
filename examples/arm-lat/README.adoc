@@ -17,7 +17,7 @@ bundle exec secryst-trainer train -i './data/input.csv' -t './data/target.csv' -
 
 You can stop it when the loss gets around 0.01, around 50-70 epochs.
 
-That's it! Now you can use the model using `secryst translate`, like this (but some armenian strings in texts.txt):
+That's it! Now you can use the model using `secryst translate`, like this (put some armenian strings in texts.txt):
 
 [source,sh]
 ----
