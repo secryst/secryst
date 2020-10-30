@@ -7,7 +7,7 @@ class SecrystCli < Thor
   desc "translate", "Translate input sequence using specified model"
   method_option :input_text, :aliases => "-i", :desc => "String of text to translate"
   method_option :input_text_file, :aliases => "-t", :desc => "Path to file with text to translate"
-  method_option :model_file, :aliases => "-f", :desc => "Specify model checkpoint .pth file", :required => true
+  method_option :model_file, :aliases => "-f", :desc => "Specify model checkpoint .zip file", :required => true
 
   def translate
     translator = Secryst::Translator.new({
