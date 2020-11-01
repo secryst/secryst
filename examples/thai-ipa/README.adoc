@@ -4,7 +4,7 @@ In this example we will see how to train a model to convert Thai graphemes to ph
 
 We will use the data from https://github.com/PyThaiNLP/lexicon-thai/tree/master/G2P. Now it's already in data folder.
 
-=== Prepare the data 
+=== Prepare the data
 
 Run `bundle exec ruby prepare_data.rb`. That will product `input.csv` and `target.csv` in `data` folder.
 
@@ -12,7 +12,7 @@ Run `bundle exec ruby prepare_data.rb`. That will product `input.csv` and `targe
 
 [source,sh]
 ----
-bundle exec secryst-trainer train -i './data/input.csv' -t './data/target.csv' --batch-size=32 --max-epochs=100 --log-interval=10 --checkpoint-every=15 --checkpoint_dir='checkpoints' --gamma=0.2
+bundle exec secryst-trainer train -i './data/input.csv' -t './data/target.csv' --batch-size=32 --max-epochs=100 --log-interval=10 --checkpoint-every=10 --checkpoint_dir='checkpoints' --gamma=0.2
 ----
 
 You can stop it when the loss gets around 0.05, around 60 epochs.
