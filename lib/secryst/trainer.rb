@@ -29,6 +29,9 @@ module Secryst
       @checkpoint_every = checkpoint_every
       @checkpoint_dir = checkpoint_dir
       FileUtils.mkdir_p(@checkpoint_dir)
+      last_checkpoint = Dir[File.join(@checkpoint_dir, '*')].sort_by {|n| n.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i }.last
+      puts "Starting from checkpoint #{last_checkpoint}" if last_checkpoint 
+      @initial_epoch = last_checkpoint ? last_checkpoint.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i : 0
       generate_vocabs_and_data
 
       @hyperparameters = hyperparameters.merge({
@@ -41,7 +44,11 @@ module Secryst
 
       case model
       when 'transformer'
-        @model = Secryst::Transformer.new(@hyperparameters)
+        if last_checkpoint
+          @model = Model.from_file(last_checkpoint)
+        else
+          @model = Secryst::Transformer.new(@hyperparameters)
+        end
       else
         raise ArgumentError, 'Only transformer model is currently supported'
       end
@@ -60,7 +67,7 @@ module Secryst
       total_loss = 0.0
       start_time = Time.now
       ntokens = @target_vocab.length
-      epoch = 0
+      epoch = @initial_epoch
 
       loop do
         epoch_start_time = Time.now

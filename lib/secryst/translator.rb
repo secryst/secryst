@@ -2,26 +2,8 @@ module Secryst
   class Translator
     attr_accessor :model, :input_vocab, :target_vocab
     def initialize(model_file:)
-      model_name, model, metadata, model_state_dict, vocabs = nil
       @device = "cpu"
-      # Unzip model in memory
-      Zip::File.open(model_file) do |zip_file|
-        metadata = zip_file.glob('metadata.yaml').first
-        metadata = YAML.load(metadata.get_input_stream.read) if metadata
-
-        vocabs = zip_file.glob('vocabs.yaml').first
-        raise 'vocabs.yaml is missing in model zip!' if !vocabs
-        vocabs = YAML.load(vocabs.get_input_stream.read)
-        @input_vocab = Vocab.new(vocabs["input"], specials: [])
-        @target_vocab = Vocab.new(vocabs["target"], specials: [])
-
-        model = zip_file.glob('*.pth').first
-        if !model
-          model = zip_file.glob('*.onnx').first
-          raise 'Both .pth and .onnx model files is missing in model zip!' if !model
-        end
-        @model = Model.from_file(model, metadata, @input_vocab.length, @target_vocab.length)
-      end
+      @model = Model.from_file(model_file)
     end
 
     def translate(phrase, max_seq_length: 100)

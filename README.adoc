@@ -166,7 +166,7 @@ Training a typical model:
 #     learning parameters.
 #   - `checkpoint-every` indicates how often Secryst saves a checkpoint
 #     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.zip`.
-#   - `checkpoint_dir` specifies the directory to store checkpoint files.
+#   - `checkpoint_dir` specifies the directory to store checkpoint files. If some checkpoints are already in the directory, the training will continue from the latest
 
 secryst-trainer train \
   -i 'data/kh-rom-small/input.csv' \
@@ -192,7 +192,7 @@ Training with all options:
 #     learning parameters.
 #   - `checkpoint-every` indicates how often Secryst saves a checkpoint
 #     file to `checkpoint_dir`, in the format `checkpoint-{epoch}.zip`.
-#   - `checkpoint_dir` specifies the directory to store checkpoint.
+#   - `checkpoint_dir` specifies the directory to store checkpoint. If some checkpoints are already in the directory, the training will continue from the latest
 #   - `gamma` specifies the gamma value used
 #   - hyperparameters in a key-value pair format
 
