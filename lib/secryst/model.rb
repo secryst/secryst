@@ -1,8 +1,10 @@
 module Secryst
   class Model
-    attr_accessor :model
-    def initialize(model)
+    attr_accessor :model, :input_vocab, :target_vocab
+    def initialize(model, input_vocab, target_vocab)
       @model = model
+      @input_vocab = input_vocab
+      @target_vocab = target_vocab
     end
 
     def self.from_file(model_file)
@@ -15,8 +17,8 @@ module Secryst
         vocabs = zip_file.glob('vocabs.yaml').first
         raise 'vocabs.yaml is missing in model zip!' if !vocabs
         vocabs = YAML.load(vocabs.get_input_stream.read)
-        @input_vocab = Vocab.new(vocabs["input"], specials: [])
-        @target_vocab = Vocab.new(vocabs["target"], specials: [])
+        input_vocab = Vocab.new(vocabs["input"], specials: [])
+        target_vocab = Vocab.new(vocabs["target"], specials: [])
 
         model = zip_file.glob('*.pth').first
         if !model
@@ -37,17 +39,17 @@ module Secryst
             dim_feedforward: metadata[:dim_feedforward],
             dropout: metadata[:dropout],
             activation: metadata[:activation],
-            input_vocab_size: @input_vocab.length,
-            target_vocab_size: @target_vocab.length,
+            input_vocab_size: input_vocab.length,
+            target_vocab_size: target_vocab.length,
           })
         else
           raise ArgumentError, 'Only transformer model is currently supported'
         end
         model.load_state_dict(model_state_dict)
         model.eval
-        return self.new(model)
+        return self.new(model, input_vocab, target_vocab)
       elsif model.name.end_with?('.onnx')
-        return Onnx.new(model.get_input_stream.read)
+        return Onnx.new(model.get_input_stream.read, input_vocab, target_vocab))
       else
         raise "Model extension #{model.name.split('.').last} not supported"
       end
@@ -63,8 +65,10 @@ module Secryst
     end
 
     class Onnx < Model
-      def initialize(model_path_or_bytes)
+      def initialize(model_path_or_bytes, input_vocab, target_vocab)
         @model = OnnxRuntime::Model.new(model_path_or_bytes)
+        @input_vocab = input_vocab
+        @target_vocab = target_vocab
       end
 
       def call(*args)
