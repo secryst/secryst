@@ -8,7 +8,7 @@ module Secryst
     end
 
     def self.from_file(model_file)
-      model_name, model, metadata, model_state_dict, vocabs = nil
+      model_name, model, metadata, model_state_dict, vocabs, input_vocab, target_vocab = nil
       # Unzip model in memory
       Zip::File.open(model_file) do |zip_file|
         metadata = zip_file.glob('metadata.yaml').first
