@@ -8,8 +8,8 @@ module Secryst
 
     def translate(phrase, max_seq_length: 100)
       input = ['<sos>'] + phrase.chars + ['<eos>']
-      input = Torch.tensor([input.map {|i| @input_vocab.stoi[i]}]).t
-      output = Torch.tensor([[@target_vocab.stoi['<sos>']]])
+      input = Torch.tensor([input.map {|i| @model.input_vocab.stoi[i]}]).t
+      output = Torch.tensor([[@model.target_vocab.stoi['<sos>']]])
       src_key_padding_mask = input.t.eq(1)
 
       max_seq_length.times do |i|
@@ -22,11 +22,11 @@ module Secryst
           memory_key_padding_mask: src_key_padding_mask,
         }
         prediction = @model.call(input, output, opts).map {|i| i.argmax.item }
-        break if @target_vocab.itos[prediction[i]] == '<eos>'
+        break if @model.target_vocab.itos[prediction[i]] == '<eos>'
         output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
       end
 
-      "#{output[1..-1].map {|i| @target_vocab.itos[i.item]}.join('')}"
+      "#{output[1..-1].map {|i| @model.target_vocab.itos[i.item]}.join('')}"
     end
   end
 end
