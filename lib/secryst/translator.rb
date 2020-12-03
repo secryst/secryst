@@ -1,6 +1,6 @@
 module Secryst
   class Translator
-    attr_accessor :model, :input_vocab, :target_vocab
+    attr_accessor :model
     def initialize(model_file:)
       @device = "cpu"
       @model = Model.from_file(model_file)

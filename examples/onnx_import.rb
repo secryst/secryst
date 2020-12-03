@@ -36,14 +36,14 @@ bert = Secryst::Translator.new({
 # Utilize ONNX model for mask filling scenario
 input_sentence = ['[CLS]', 'this', 'looks', 'like', 'a', 'wonderful', '[MASK]', '.', '[SEP]']
 attn_mask = input_sentence.map { 1 }
-input_sentence.map! {|t| bert.input_vocab.stoi[t]}
+input_sentence.map! {|t| bert.model.input_vocab.stoi[t]}
 token_type_ids = input_sentence.map { 0 }
 
 res = bert.model.call({input_ids: [input_sentence], attention_mask: [attn_mask], token_type_ids: [token_type_ids]})
 
 # Decode the output
 output = res["output_0"][0].map {|part| part.each_with_index.max[1]}
-res_tokens = output.map {|t| bert.target_vocab.itos[t]}
+res_tokens = output.map {|t| bert.model.target_vocab.itos[t]}
 puts res_tokens.inspect
 
 raise 'ONNX model output is wrong' if res_tokens != ['.', 'this', 'looks', 'like', 'a', 'wonderful', 'place', '.', '.']
