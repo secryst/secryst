@@ -49,7 +49,7 @@ module Secryst
         model.eval
         return self.new(model, input_vocab, target_vocab)
       elsif model.name.end_with?('.onnx')
-        return Onnx.new(model.get_input_stream.read, input_vocab, target_vocab))
+        return Onnx.new(model.get_input_stream.read, input_vocab, target_vocab)
       else
         raise "Model extension #{model.name.split('.').last} not supported"
       end
