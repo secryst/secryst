@@ -5,14 +5,14 @@ PATH
       onnxruntime (~> 0.5)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-      torch-rb (~> 0.4)
+      torch-rb (~> 0.5)
     secryst-trainer (0.1.0)
       numo (~> 0.1)
       numo-linalg (~> 0.1)
       rubyzip (~> 2.3)
       secryst (= 0.1.0)
       thor (~> 1.0)
-      torch-rb (~> 0.4)
+      torch-rb (~> 0.5)
 
 GEM
   remote: https://rubygems.org/
@@ -33,7 +33,7 @@ GEM
     numo-linalg (0.1.5)
       numo-narray (>= 0.9.1.4)
     numo-narray (0.9.1.8)
-    onnxruntime (0.5.0)
+    onnxruntime (0.5.1)
       ffi
     rake (13.0.1)
     rice (2.2.0)
@@ -52,7 +52,7 @@ GEM
     rspec-support (3.9.3)
     rubyzip (2.3.0)
     thor (1.0.1)
-    torch-rb (0.4.1)
+    torch-rb (0.5.2)
       rice (>= 2.2)
 
 PLATFORMS

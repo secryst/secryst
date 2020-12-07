@@ -58,8 +58,8 @@ jobs:
           sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
             liblapack-dev liblapacke-dev unzip automake make gcc g++ \
             libtorch libtorch-dev
-          wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
-          unzip libtorch-cxx11-abi-shared-with-deps-1.6.0.zip
+          wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
+          unzip libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
 
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
