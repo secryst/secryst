@@ -60,6 +60,10 @@ module Secryst
       @model.call(*args)
     end
 
+    def argmax(*args)
+      self.call(*args).map {|i| i.argmax.item }
+    end
+
     def method_missing(name, *args, &block)
       @model.public_send(name, *args, &block)
     end
@@ -71,8 +75,16 @@ module Secryst
         @target_vocab = target_vocab
       end
 
-      def call(*args)
-        @model.predict(*args)
+      def call(input, output, opts)
+        @model.predict({src: input, tgt: output})["output"][0]
+      end
+
+      def argmax(*args)
+        self.call(*args).map {|i| i.each_with_index.max[1] }
+      end
+
+      def predict(args)
+        @model.predict(args)
       end
     end
   end
