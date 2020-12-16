@@ -39,7 +39,7 @@ attn_mask = input_sentence.map { 1 }
 input_sentence.map! {|t| bert.model.input_vocab.stoi[t]}
 token_type_ids = input_sentence.map { 0 }
 
-res = bert.model.call({input_ids: [input_sentence], attention_mask: [attn_mask], token_type_ids: [token_type_ids]})
+res = bert.model.model.predict({input_ids: [input_sentence], attention_mask: [attn_mask], token_type_ids: [token_type_ids]})
 
 # Decode the output
 output = res["output_0"][0].map {|part| part.each_with_index.max[1]}
