@@ -76,11 +76,11 @@ module Secryst
       end
 
       def call(input, output, opts)
-        @model.predict({src: input, tgt: output})["output"][0]
+        @model.predict({src: input, tgt: output}.merge(opts))["output"]
       end
 
       def argmax(*args)
-        self.call(*args).map {|i| i.each_with_index.max[1] }
+        self.call(*args).map {|i| i.flatten.each_with_index.max[1] }
       end
 
       def predict(args)
