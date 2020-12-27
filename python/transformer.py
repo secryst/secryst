@@ -43,13 +43,13 @@ class PositionalEncoding(nn.Module):
         Examples:
             >>> output = pos_encoder(x)
         """
-        x = x + self.pe[:x.size(0), :]
+        x = x + self.pe.narrow(0, 0, x.size(0))
         return self.dropout(x)
 
 class TransformerModel(nn.Module):
     """Container module with an encoder, a recurrent or transformer module, and a decoder."""
 
-    def __init__(self, input_vocab_size, target_vocab_size, d_model=512, nhead=8, dim_feedforward=2048, num_encoder_layers=6, num_decoder_layers=6, dropout=0.5, activation="relu"):
+    def __init__(self, input_vocab_size, target_vocab_size, d_model=512, nhead=8, dim_feedforward=2048, num_encoder_layers=6, num_decoder_layers=6, dropout=0.1, activation="relu"):
         super(TransformerModel, self).__init__()
         try:
             from torch.nn import TransformerEncoderLayer, TransformerDecoderLayer
@@ -94,9 +94,9 @@ class TransformerModel(nn.Module):
     #     nn.init.zeros_(self.decoder.weight)
     #     nn.init.uniform_(self.decoder.weight, -initrange, initrange)
 
-    def forward(self, src, tgt, src_mask=None, tgt_mask=None,
-                memory_mask=None, src_key_padding_mask=None,
-                tgt_key_padding_mask=None, memory_key_padding_mask=None):
+    # Order of arguments is important for onnx export, in python/pth_to_onnx.py
+    def forward(self, src, tgt, tgt_mask=None, src_key_padding_mask=None,
+                tgt_key_padding_mask=None, memory_key_padding_mask=None, src_mask=None, memory_mask=None):
         # if has_mask:
         #     device = src.device
         #     if self.src_mask is None or self.src_mask.size(0) != len(src):
@@ -105,7 +105,6 @@ class TransformerModel(nn.Module):
         #         self.src_mask = mask
         # else:
         #     self.src_mask = None
-
         memory = self.encoder(src, mask=src_mask, src_key_padding_mask= src_key_padding_mask)
         output = self.decoder(tgt, memory, tgt_mask=tgt_mask, memory_mask=memory_mask,
                                tgt_key_padding_mask=tgt_key_padding_mask,
