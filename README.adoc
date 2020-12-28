@@ -243,8 +243,8 @@ Training a typical model:
 #   - `checkpoint_dir` specifies the directory to store checkpoint files. If some checkpoints are already in the directory, the training will continue from the latest
 
 secryst-trainer train \
-  -i 'data/kh-rom-small/input.csv' \
-  -t 'data/kh-rom-small/target.csv' \
+  -i 'data/khm-latn-small/input.csv' \
+  -t 'data/khm-latn-small/target.csv' \
   --max-epochs=500 \
   --log-interval=1 \
   --checkpoint-every=50 \
@@ -271,8 +271,8 @@ Training with all options:
 #   - hyperparameters in a key-value pair format
 
 secryst-trainer train --model=transformer \
-  -i 'data/kh-rom-small/input.csv' \
-  -t 'data/kh-rom-small/target.csv' \
+  -i 'data/khm-latn-small/input.csv' \
+  -t 'data/khm-latn-small/target.csv' \
   --batch-size=32 \
   --max-epochs=500 \
   --log-interval=1 \
