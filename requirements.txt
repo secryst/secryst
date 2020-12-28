@@ -1,4 +1,5 @@
-torch
 pyyaml
+--find-links https://download.pytorch.org/whl/torch_stable.html
+torch
 -i https://test.pypi.org/simple/
 ort-nightly
