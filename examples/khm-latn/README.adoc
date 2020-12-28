@@ -1,0 +1,39 @@
+== Khmer Romanization
+
+In this example we will see how to train a model to Romanize Khmer to Latin script using Secryst.
+
+The system implemented is provided from:
+
+* https://viblo.asia/p/nlp-khmer-word-segmentation-YWOZrgNNlQ0
+* https://viblo.asia/p/nlp-khmer-romanization-using-seq2seq-m68Z07OQKkG
+
+=== Prepare the data
+
+Data provided under:
+
+* `examples/khm-latn/input.csv`
+* `examples/khm-latn/target.csv`
+
+
+=== Train the model
+
+[source,sh]
+----
+bundle exec secryst-trainer train \
+  -i 'examples/khm-latn/input.csv' \
+  -t 'examples/khm-latn/target.csv' \
+  --batch-size=32 --max-epochs=500 --log-interval=1 \
+  --checkpoint-every=50 --checkpoint_dir=examples/khm-latn/checkpoints \
+  --gamma=0.2
+----
+
+You can stop it when the loss gets around 0.01, around 50-70 epochs.
+
+That's it! Now you can use the model using `secryst translate`, like this:
+
+[source,sh]
+----
+bundle exec secryst translate \
+  --model-file examples/khm-latn/checkpoints/checkpoint-90.zip \
+  -t examples/translate-khm.txt
+----

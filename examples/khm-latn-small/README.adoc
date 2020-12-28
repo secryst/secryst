@@ -1,0 +1,34 @@
+== Khmer Romanization (minimal)
+
+This is a cut-down dataset of `examples/khm-latn`.
+
+
+=== Prepare the data
+
+Data provided under:
+
+* `examples/khm-latn-small/input.csv`
+* `examples/khm-latn-small/target.csv`
+
+=== Train the model
+
+[source,sh]
+----
+bundle exec secryst-trainer train \
+  -i 'examples/khm-latn-small/input.csv' \
+  -t 'examples/khm-latn-small/target.csv' \
+  --batch-size=32 --max-epochs=500 --log-interval=1 \
+  --checkpoint-every=50 --checkpoint_dir=examples/khm-latn-small/checkpoints \
+  --gamma=0.2
+----
+
+Since this is an example training set, the loss remains high at completion but it finishes fast.
+
+That's it! Now you can use the model using `secryst translate` like this:
+
+[source,sh]
+----
+bundle exec secryst translate \
+  --model-file examples/khm-latn-small/checkpoints/checkpoint-500.zip \
+  -t examples/translate-khm.txt
+----

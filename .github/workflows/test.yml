@@ -126,7 +126,7 @@ jobs:
         run: |
           echo "Running 'secryst translate'"
           bundle exec secryst translate \
-            --input_text_file=examples/to-translate.txt \
+            --input_text_file=examples/translate-thai.txt \
             --model-file=examples/checkpoints/checkpoint-500.pth \
             --vocabs-dir=examples/checkpoints/
 
@@ -134,8 +134,8 @@ jobs:
         run: |
           echo "Running 'secryst-trainer train'"
           bundle exec secryst-trainer train \
-            -i 'data/kh-rom-small/input.csv' \
-            -t 'data/kh-rom-small/target.csv' \
+            -i 'examples/khm-latn-small/input.csv' \
+            -t 'examples/khm-latn-small/target.csv' \
             --batch-size=32 --max-epochs=500 --log-interval=1 \
             --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
             --gamma=0.2
