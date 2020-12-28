@@ -17,21 +17,76 @@ The goal is to allow:
 * Users of the library in Ruby who only want to "use" the trained models should not require special bindings to run.
 
 
-== Status
+== Introduction
 
-Currently Secryst works with the Khmer Romanization system as cited below.
+Secryst works with a number of Romanization and transliteration systems.
 
-Secryst is composed of two separate gems:
+It is composed of two separate pieces of software (Ruby gems):
 
-* `secryst` is for users of trained models
-* `secryst-trainer` is for users who wish to train models
+* Secryst Translator: `secryst`, for users of trained models
+* Secryst Trainer: `secryst-trainer` for users who wish to train models
+
+Secryst models are platform-independent, interoperable
+and transferrable across installations.
+
+There are two types of Secryst models:
+
+Secryst ONNX model (recommended)::
+These can be run on any platform without `libtorch`
+(which requires installation of development tools).
+
+Secryst Torch model::
+These require `libtorch` to run. Secryst Torch models are trained in Ruby.
+
+Secryst Torch models can be converted to Secryst ONNX models
+via Python using instructions below.
+
+Secryst Trainer also supports checkpoint resumption.
+
+
+== Examples
+
+Under the `examples/` directory the following systems are provided
+
+* `examples/khm-latn`: Khmer Romanization
+* `examples/arm-latn`: Armenian Romanization based on Wikipedia data
 
 
 == Prerequisites
 
-=== General (and Secryst)
 
-* `libtorch` (1.7.0)
+=== Secryst Translator
+
+==== Basic (usage of Secryst ONNX models only)
+
+If you only need to use Secryst ONNX models, there is no need
+to install `libtorch` and development tools.
+
+
+macOS and Ubuntu:
+
+[source,sh]
+----
+$ gem install bundler
+$ bundle install
+----
+
+
+On macOS:
+
+[source,sh]
+----
+$ gem install bundler
+$ bundle install
+----
+
+
+==== To use Secryst Torch models
+
+Usage of Secryst Torch models require `libtorch`, which
+requires installation of the following packages:
+
+* `libtorch` (1.7.1)
 * `fftw`
 * `gsl`
 
@@ -42,10 +97,10 @@ On Ubuntu:
 ----
 $ sudo apt-get -y install libfftw3-dev libgsl-dev unzip automake \
   make gcc g++ libtorch libtorch-dev
-$ wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
-$ unzip libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
+$ wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.7.1%2Bcpu.zip
+$ unzip libtorch-cxx11-abi-shared-with-deps-1.7.1%2Bcpu.zip
 
-$ gem install bundler -v "~> 2"
+$ gem install bundler
 $ bundle config build.torch-rb \
     --with-torch-dir=$(pwd)/libtorch
 
@@ -58,18 +113,18 @@ On macOS:
 [source,sh]
 ----
 $ brew install libtorch gsl fftw automake gcc
-$ gem install bundler -v "~> 2"
+$ gem install bundler
 $ bundle install
 ----
 
 
-=== Secryst trainer
+
+=== Secryst Trainer
 
 In order to use Secryst Trainer two additional components are necessary:
 
 * `lapack`
 * `openblas`
-
 
 On Ubuntu:
 
@@ -86,6 +141,9 @@ $ bundle config build.torch-rb \
     --with-torch-dir=$(pwd)/libtorch
 
 $ bundle install
+
+# To enable ONNX training, you must also install the Python portions
+$ pip3 install -r requirements.txt
 ----
 
 
@@ -95,12 +153,15 @@ On macOS:
 ----
 $ brew install libtorch gsl lapack openblas fftw automake gcc
 
-$ gem install bundler -v "~> 2"
+$ gem install bundler
 $ bundle config build.numo-linalg \
-    --with-openblas-dir=/usr/local/opt/openblas \
-    --with-lapack-lib=/usr/local/opt/lapack
+    --with-openblas-dir=$(brew --prefix openblas) \
+    --with-lapack-lib=$(brew --prefix lapack)
 
 $ bundle install
+
+# To enable ONNX training, you must also install the Python portions
+$ pip3 install -r requirements.txt
 ----
 
 
@@ -119,6 +180,7 @@ $ bundle exec gem uninstall numo-linalg
 
 Secryst provides a CLI for training models and re-using trained models.
 
+
 === Using trained models
 
 You will need to install the `secryst` gem (prerequisites must be fulfilled):
@@ -134,14 +196,26 @@ To utilize a trained model:
 ----
 # Transform all individual lines of `--input_text_file`.
 # Specifying:
-#   - trained model zip archive at `--model-file`. Must include metadata.yaml, vocabs.yaml and .pth or .onnx model file.
+#   - trained model zip archive at `--model-file`.
+#     Must include `metadata.yaml`, `vocabs.yaml` and
+#     an `.pth` or `.onnx` model file.
 
 secryst translate \
   --input_text_file=examples/to-translate.txt \
   --model-file=examples/checkpoints/checkpoint-500.zip
 ----
 
-=== Training models
+Both Secryst ONNX models and Secryst Torch models can
+be used with this command.
+
+
+=== Training models in Ruby (output: Secryst Torch model)
+
+Secryst supports training models in Ruby into the Secryst Torch model format.
+These created models can then be used by other users through the `secryst` gem.
+
+NOTE: To make a trained Secryst model available for all platforms,
+you should convert the Secryst Torch model into a Secryst ONNX model.
 
 You will need to install the `secryst-trainer` gem (prerequisites must be fulfilled):
 
@@ -209,16 +283,56 @@ secryst-trainer train --model=transformer \
     dim_feedforward:256 dropout:0.05 activation:relu
 ----
 
-=== Importing ONNX model
 
-You can easily utilize ONNX models in Secryst as well.
+=== Convert Secryst Torch models to Secryst ONNX models
+
+Due to a limitation of https://pytorch.org/cppdocs/[libtorch's C++ interface]
+not being able to encode trained models in ONNX, we have to use PyTorch to
+convert Secryst Torch models into Secryst ONNX models.
+
+Secryst supports generation of Secryst ONNX models using PyTorch.
+
+First, clone this current repository.
+
+To convert a Secryst Torch model to a Secryst ONNX model, run:
+
+[source,sh]
+----
+python3 python/pth_to_onnx.py checkpoint.zip output.zip
+----
+
+The trained Secryst ONNX model can be used as usual:
+
+[source,sh]
+----
+bundle exec secryst translate --model-file output.zip -t texts.txt
+----
+
+
+
+=== Resuming training
+
+Secryst Trainer supports checkpoint resumption.
+
+It will detect whether you already have checkpoint model files in the model output
+directory (in the filename of `checkpoint-nnn.zip`), and attempt to
+resume training from there. Notice that in resuming training, you
+must use identical parameters and the identical training dataset,
+otherwise the process will throw out an error.
+
+
+=== Importing non-Secryst ONNX models
+
+You can easily utilize non-Secryst trained ONNX models in Secryst as well.
 
 You need to prepare a zip file with:
 
-* .onnx model file
-* vocabs.yaml
+* An `.onnx` model file
+* The `vocabs.yaml` file
 
-vocabs.yaml file has to contain two keys - "input" and "target" (it's okay if they are the same), which contain all tokens from vocabulary placed in original order. Like this:
+The `vocabs.yaml` file has to contain two keys - `input` and `target` (it's okay if they are the same), which contain all tokens from vocabulary placed in original order.
+
+Like this:
 
 [source,yaml]
 ----
@@ -230,7 +344,7 @@ target:
 - ...
 ----
 
-Then just utilize model usually as described above. You can as well find the example of this in the examples folder.
+Then just utilize model usually as described above. You can find an example of this in the examples folder (`onnx_import.rb`).
 
 
 == Examples
@@ -252,7 +366,7 @@ $ bundle exec examples/translating.rb
 ----
 
 * Checkpoint files are generated as `examples/checkpoints/*.zip`
-* It includes metadata.yaml, model.pth and vocabs.yaml files
+* It includes `metadata.yaml`, `model.pth` and `vocabs.yaml` files
 
 
 
@@ -267,10 +381,6 @@ based on:
   Attention is all you need. 2017. In:
   _Advances in Neural Information Processing Systems_, pages 6000-6010.
 
-The sample transliteration system implemented is the Khmer system:
-
-* https://viblo.asia/p/nlp-khmer-word-segmentation-YWOZrgNNlQ0
-* https://viblo.asia/p/nlp-khmer-romanization-using-seq2seq-m68Z07OQKkG
 
 
 == Origin of name
