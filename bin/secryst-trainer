@@ -13,7 +13,7 @@ class SecrystTrainerCli < Thor
   method_option :log_interval, :aliases => "-l", :type => :numeric, :desc => "Training logging interval", :default => 10
   method_option :checkpoint_every, :aliases => "-c", :type => :numeric, :desc => "Save checkpoint every N epochs", :default => 15
   method_option :checkpoint_dir, :desc => "Directory where to save checkpoints", :required => true, :default => "./checkpoints"
-  method_option :scheduler_step_size, :desc => "Scheduler step size", :type => :numeric, :default => 70
+  method_option :scheduler_step_size, :desc => "Scheduler step size", :type => :numeric, :default => 5
   method_option :gamma, :desc => "Scheduler gamma", :type => :numeric, :default => 0.9
   method_option :batch_size, :aliases => "-b", :desc => "Batch size", :type => :numeric, :default => 32
   method_option :lr, :desc => "Learning rate", :type => :numeric, :default => 0.1

@@ -150,7 +150,7 @@ module Secryst
         scheduler.step
 
         epoch += 1
-        break if @max_epochs && @max_epochs < epoch
+        break if @max_epochs && (initial_epoch + @max_epochs) < epoch
       end
     ensure
       cleanup_files
