@@ -1,3 +1,4 @@
+require 'byebug'
 module Secryst
   class Model
     attr_accessor :model, :input_vocab, :target_vocab
@@ -29,6 +30,14 @@ module Secryst
       if model.name.end_with?('.pth')
         raise 'metadata.yaml is missing in model zip!' if !metadata
         model_state_dict = Torch.send :to_ruby, Torch._load(model.get_input_stream.read)
+        # Python-trained model have other key namess, so we transform
+        # them in this case
+        new_dict = {}
+        model_state_dict.each {|k,v|
+          key = k.gsub(/layers\.(\d+)\./, "layer\1")
+          new_dict[key] = v
+        }
+
         model_name = metadata.delete("name")
         if model_name == 'transformer'
           model = Secryst::Transformer.new({
@@ -45,7 +54,7 @@ module Secryst
         else
           raise ArgumentError, 'Only transformer model is currently supported'
         end
-        model.load_state_dict(model_state_dict)
+        model.load_state_dict(new_dict)
         model.eval
         return self.new(model, input_vocab, target_vocab)
       elsif model.name.end_with?('.onnx')
