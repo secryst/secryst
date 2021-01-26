@@ -124,3 +124,13 @@ jobs:
             --batch-size=32 --max-epochs=500 --log-interval=1 \
             --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
             --gamma=0.2
+      
+      - name: Test Python train
+        run: |
+          echo "Running 'python3 python/train.py'"
+          python3 python/train.py \
+            -i 'examples/khm-latn-small/input.csv' \
+            -t 'examples/khm-latn-small/target.csv' \
+            --batch-size=32 --max-epochs=500 --log-interval=1 \
+            --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
+            --gamma=0.2
