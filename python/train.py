@@ -142,8 +142,7 @@ random.Random(seed).shuffle(zipped_texts)
 train_texts = zipped_texts[0:int(len(zipped_texts)*0.9)]
 eval_texts = zipped_texts[int(
     len(zipped_texts)*0.9) + 1:int(len(zipped_texts)*0.97)]
-test_texts = zipped_texts[int(len(zipped_texts)*0.97)+1:-1]
-
+test_texts = zipped_texts[int(len(zipped_texts)*0.97):-1]
 # prepare batches
 
 
