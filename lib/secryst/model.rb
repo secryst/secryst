@@ -1,4 +1,3 @@
-require 'byebug'
 module Secryst
   class Model
     attr_accessor :model, :input_vocab, :target_vocab
