@@ -137,5 +137,5 @@ jobs:
             -i 'examples/khm-latn-small/input.csv' \
             -t 'examples/khm-latn-small/target.csv' \
             --batch-size=32 --max-epochs=500 --log-interval=1 \
-            --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
+            --checkpoint-every=50 --checkpoint-dir=examples/checkpoints \
             --gamma=0.2
