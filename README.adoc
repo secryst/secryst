@@ -357,7 +357,7 @@ Install the python version 3.8, and required packages:
 pip3 install -r requirements.txt
 ----
 
-And start the training. All the options are the same as Ruby trainer
+And start the training (all the options are the same as Ruby trainer):
 
 [source,sh]
 ----
