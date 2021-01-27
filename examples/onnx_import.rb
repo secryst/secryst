@@ -5,7 +5,7 @@ require "json"
 # puts "Downloading ONNX Bert Base Uncased model..."
 # system('wget ...')
 puts "Converting Bert Base Uncased model to ONNX..."
-system("python3 #{`python3 -c "import transformers as _; print(_.__path__[0])"`.strip}/convert_graph_to_onnx.py --framework pt --model bert-base-uncased --pipeline fill-mask bert.onnx")
+system("python3 -m transformers.convert_graph_to_onnx #{`python3 -c "import transformers as _; print(_.__path__[0])"`.strip}/convert_graph_to_onnx.py --framework pt --pipeline fill-mask --model bert-base-uncased ./bert.onnx")
 
 puts "Downloading Bert tokenizer..."
 system('wget https://cdn.huggingface.co/bert-base-uncased-tokenizer.json')
