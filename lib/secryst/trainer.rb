@@ -9,8 +9,8 @@ module Secryst
       data_target:,
       hyperparameters:,
       max_epochs: nil,
-      log_interval: 1,
-      checkpoint_every:,
+      log_interval: 10,
+      checkpoint_every:15,
       checkpoint_dir:,
       scheduler_step_size:,
       gamma:
@@ -31,7 +31,7 @@ module Secryst
       FileUtils.mkdir_p(@checkpoint_dir)
       last_checkpoint = Dir[File.join(@checkpoint_dir, '*')].sort_by {|n| n.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i }.last
       puts "Starting from checkpoint #{last_checkpoint}" if last_checkpoint 
-      @initial_epoch = last_checkpoint ? last_checkpoint.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i : 0
+      @initial_epoch = last_checkpoint ? last_checkpoint.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i + 1 : 0
       generate_vocabs_and_data
 
       @hyperparameters = hyperparameters.merge({
@@ -150,7 +150,7 @@ module Secryst
         scheduler.step
 
         epoch += 1
-        break if @max_epochs && @max_epochs < epoch
+        break if @max_epochs && (@initial_epoch + @max_epochs) < epoch
       end
     ensure
       cleanup_files
@@ -189,7 +189,7 @@ module Secryst
       zipped_texts = zipped_texts.shuffle(random: Random.new(seed))
 
       # train - 90%, eval - 7%, test - 3%
-      train_texts = zipped_texts[0..(zipped_texts.length*0.9).to_i]
+      train_texts = zipped_texts[0...(zipped_texts.length*0.9).to_i]
       eval_texts = zipped_texts[(zipped_texts.length*0.9).to_i + 1..(zipped_texts.length*0.97).to_i]
       test_texts = zipped_texts[(zipped_texts.length*0.97).to_i+1..-1]
 
@@ -216,8 +216,8 @@ module Secryst
 
     def batchify(data)
       batches = []
-
-      (1 + data.length / @batch_size).times do |i|
+      # do loop at least one time
+      [1,data.length / @batch_size].max.times do |i|
         input_data = data[i*@batch_size, @batch_size].transpose[0]
         decoder_input_data = data[i*@batch_size, @batch_size].transpose[1]
         target_data = data[i*@batch_size, @batch_size].transpose[1]

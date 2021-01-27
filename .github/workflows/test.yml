@@ -43,12 +43,6 @@ jobs:
           python-version: 3.8
           architecture: x64
 
-      - name: Install transformers
-        run: |
-          python -m pip install --upgrade pip
-          pip install transformers[torch]
-          pip show transformers
-
       - name: Install ubuntu dependencies
         if: matrix.os == 'ubuntu-latest'
         #
@@ -56,10 +50,9 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
-            liblapack-dev liblapacke-dev unzip automake make gcc g++ \
-            libtorch libtorch-dev
-          wget https://download.pytorch.org/libtorch/cu102/libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
-          unzip libtorch-cxx11-abi-shared-with-deps-1.7.0.zip
+            liblapack-dev liblapacke-dev unzip automake make gcc g++ 
+          wget https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.7.1%2Bcpu.zip
+          unzip libtorch-cxx11-abi-shared-with-deps-1.7.1+cpu.zip
 
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
@@ -82,6 +75,22 @@ jobs:
       #     max_attempts: 3
       #     command: choco install --no-progress swig --version 4.0.1
 
+      - name: Install python dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
+          pip install ort-nightly -i https://test.pypi.org/simple/
+      
+      - name: Install python dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+          pip install torch==1.7.1 -f https://download.pytorch.org/whl/torch_stable.html
+          pip install ort-nightly -i https://test.pypi.org/simple/
+
       - name: Install bundler and bundle config
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -102,15 +111,6 @@ jobs:
         # bundle config path vendor/bundle
         run: |
           bundle install --jobs 4 --retry 5
-
-      - name: Test ONNX import
-        run: |
-          echo "Running ONNX import test"
-          python3 -c "import transformers as _; print(_.__path__)"
-          mkdir _onnx_test
-          cd _onnx_test
-          bundle exec ruby ../examples/onnx_import.rb
-          cd ..
 
       - name: Train model
         run: |
@@ -138,4 +138,14 @@ jobs:
             -t 'examples/khm-latn-small/target.csv' \
             --batch-size=32 --max-epochs=500 --log-interval=1 \
             --checkpoint-every=50 --checkpoint_dir=examples/checkpoints \
-            --gamma=0.2
+            --gamma=0.9999
+      
+      - name: Test Python train
+        run: |
+          echo "Running 'python3 python/train.py'"
+          python3 python/train.py \
+            -i 'examples/khm-latn-small/input.csv' \
+            -t 'examples/khm-latn-small/target.csv' \
+            --batch-size=32 --max-epochs=500 --log-interval=1 \
+            --checkpoint-every=50 --checkpoint-dir=examples/checkpoints-py \
+            --gamma=0.9999
