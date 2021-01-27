@@ -1,4 +1,4 @@
-name: test
+name: ONNX-only test
 
 on:
   push:
@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    # if: "!contains(github.event.commits[0].message, '[skip ci]')"
     name: Run specs on ${{ matrix.os }} ruby ${{ matrix.ruby }}
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
@@ -50,28 +51,16 @@ jobs:
       #     max_attempts: 3
       #     command: choco install --no-progress swig --version 4.0.1
 
-      - name: Install bundler and bundle config
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          gem install bundler -v "~> 2"
-          bundle config build.torch-rb \
-            --with-torch-dir=$(pwd)/libtorch
-
-      - name: Install bundler and bundle config
-        if: matrix.os == 'macos-latest'
-        run: |
-          gem install bundler -v "~> 2"
-          bundle config build.numo-linalg \
-            --with-openblas-dir=/usr/local/opt/openblas \
-            --with-lapack-lib=/usr/local/opt/lapack
-
-      - name: bundle install
+      - name: Install dependencies
         # bundle config deployment true
         # bundle config path vendor/bundle
         run: |
-          bundle install --jobs 4 --retry 5
+          gem install torch-rb -v 0.5.2
+          gem install thor -v 1.0.1
+          gem install onnxruntime -v 0.5.2
+          gem install rubyzip -v 2.3.0
 
       - name: Test ONNX translation
         run: |
           echo "Running ONNX import test"
-          bundle exec secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
+          bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
