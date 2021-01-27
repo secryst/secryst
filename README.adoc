@@ -346,6 +346,29 @@ target:
 
 Then just utilize model usually as described above. You can find an example of this in the examples folder (`onnx_import.rb`).
 
+=== Training on GPU
+
+To allow training on CUDA drivers Secryst ships Python trainer.
+
+Install the python version 3.8, and required packages:
+
+[source,sh]
+----
+pip3 install -r requirements.txt
+----
+
+And start the training. All the options are the same as Ruby trainer
+
+[source,sh]
+----
+python3 python/train.py -i 'data/khm-latn-small/input.csv' \
+  -t 'data/khm-latn-small/target.csv' \
+  --max-epochs=500 \
+  --log-interval=1 \
+  --checkpoint-every=50 \
+  --checkpoint-dir=examples/checkpoints
+----
+
 
 == Examples
 
