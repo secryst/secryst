@@ -50,7 +50,8 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libfftw3-dev libgsl-dev libopenblas-dev \
-            liblapack-dev liblapacke-dev unzip automake make gcc g++ 
+            liblapack-dev liblapacke-dev unzip automake make gcc g++ \
+            libtorch libtorch-dev
 
       - name: Install macos dependencies
         if: matrix.os == 'macos-latest'
