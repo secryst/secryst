@@ -55,7 +55,7 @@ jobs:
         # bundle config deployment true
         # bundle config path vendor/bundle
         run: |
-          BUNDLE_GEMFILE=Gemfile-secryst bundle install –path vendor/bundle-secryst
+          BUNDLE_GEMFILE=Gemfile-secryst bundle install
 
       - name: Test ONNX translation
         run: |
