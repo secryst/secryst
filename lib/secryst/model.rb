@@ -17,6 +17,7 @@ module Secryst
         vocabs = zip_file.glob('vocabs.yaml').first
         raise 'vocabs.yaml is missing in model zip!' if !vocabs
         vocabs = YAML.load(vocabs.get_input_stream.read)
+        puts vocabs
         input_vocab = Vocab.new(vocabs["input"], specials: [])
         target_vocab = Vocab.new(vocabs["target"], specials: [])
 
