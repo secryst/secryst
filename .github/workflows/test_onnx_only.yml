@@ -60,4 +60,4 @@ jobs:
       - name: Test ONNX translation
         run: |
           echo "Running ONNX import test"
-          bundle exec bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
+          BUNDLE_GEMFILE=Gemfile-secryst bundle exec bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
