@@ -50,6 +50,10 @@ jobs:
       #     timeout_minutes: 5
       #     max_attempts: 3
       #     command: choco install --no-progress swig --version 4.0.1
+      - name: Install macos dependencies
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install libomp
 
       - name: Install dependencies
         # bundle config deployment true
