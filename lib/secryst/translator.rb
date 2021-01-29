@@ -22,8 +22,11 @@ module Secryst
           src_key_padding_mask = Torch.from_numo(Numo::UInt8.cast(src_key_padding_mask)) if src_key_padding_mask.kind_of?(Numo::NArray)
           tgt_key_padding_mask = Torch.from_numo(Numo::UInt8.cast(tgt_key_padding_mask)) if tgt_key_padding_mask.kind_of?(Numo::NArray)
         end
-        puts input.inspect
-        puts output.inspect
+        puts "inp", input.inspect
+        puts "out", output.inspect
+        puts "tgt_mask", tgt_mask.inspect
+        puts "src_key_padding_mask", src_key_padding_mask.inspect
+        puts "tgt_key_padding_mask", tgt_key_padding_mask.inspect
         opts = {
           tgt_mask: tgt_mask,
           src_key_padding_mask: src_key_padding_mask,
