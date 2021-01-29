@@ -90,6 +90,12 @@ requires installation of the following packages:
 * `fftw`
 * `gsl`
 
+And also you must explicitly add `torch` gem to your Gemfile:
+
+[source,ruby]
+----
+gem 'torch-rb', '~> 0.5'
+----
 
 On Ubuntu:
 

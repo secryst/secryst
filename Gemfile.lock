@@ -5,7 +5,6 @@ PATH
       onnxruntime (~> 0.5)
       rubyzip (~> 2.3)
       thor (~> 1.0)
-      torch-rb (~> 0.5)
     secryst-trainer (0.1.0)
       numo (~> 0.1)
       numo-linalg (~> 0.1)

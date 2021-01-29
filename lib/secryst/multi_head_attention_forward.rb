@@ -175,7 +175,7 @@ module Secryst
       if attn_mask
         raise ArgumentError, 'Only float, byte, and bool types are supported for attn_mask, not %s' % attn_mask.dtype unless attn_mask.dtype == Torch.float32 || attn_mask.dtype == Torch.float64 || attn_mask.dtype == Torch.float16 || attn_mask.dtype == Torch.uint8 || attn_mask.dtype == Torch.bool
         if attn_mask.dtype == Torch.uint8
-          puts "Byte tensor for attn_mask in NN::MultiheadAttention is deprecated. Use bool tensor instead."
+          # puts "Byte tensor for attn_mask in NN::MultiheadAttention is deprecated. Use bool tensor instead."
           attn_mask = attn_mask.to(Torch.bool)
         end
 
@@ -192,7 +192,7 @@ module Secryst
 
       # convert ByteTensor key_padding_mask to bool
       if key_padding_mask && key_padding_mask.dtype == Torch.uint8
-        puts("Byte tensor for key_padding_mask in NN::MultiheadAttention is deprecated. Use bool tensor instead.")
+        # puts("Byte tensor for key_padding_mask in NN::MultiheadAttention is deprecated. Use bool tensor instead.")
         key_padding_mask = key_padding_mask.to(Torch.bool)
       end
 
