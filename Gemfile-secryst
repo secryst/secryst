@@ -1,0 +1,5 @@
+source 'https://rubygems.org'
+
+gemspec name: 'secryst'
+
+gem 'byebug', group: :development
