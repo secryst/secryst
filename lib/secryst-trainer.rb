@@ -1,3 +1,4 @@
+require "torch"
 require "secryst"
 
 # only if training?
