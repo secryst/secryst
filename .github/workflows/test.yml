@@ -127,8 +127,7 @@ jobs:
           echo "Running 'secryst translate'"
           bundle exec secryst translate \
             --input_text_file=examples/translate-thai.txt \
-            --model-file=examples/checkpoints/checkpoint-500.pth \
-            --vocabs-dir=examples/checkpoints/
+            --model-file=examples/checkpoints/checkpoint-500.pth 
 
       - name: Test train CLI
         run: |

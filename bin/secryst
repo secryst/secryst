@@ -4,6 +4,9 @@ require "thor"
 require "secryst"
 
 class SecrystCli < Thor
+  def self.exit_on_failure?
+    true
+  end
   desc "translate", "Translate input sequence using specified model"
   method_option :input_text, :aliases => "-i", :desc => "String of text to translate"
   method_option :input_text_file, :aliases => "-t", :desc => "Path to file with text to translate"
