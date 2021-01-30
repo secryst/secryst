@@ -33,6 +33,14 @@ module Secryst
           tgt_key_padding_mask: tgt_key_padding_mask,
           memory_key_padding_mask: src_key_padding_mask,
         }
+
+        # We are cloning the output tensor because of weird bug 
+        # that it is being mutated https://github.com/secryst/secryst/pull/34#issuecomment-769935874
+        dupped_output = if defined?(Torch)
+          Torch.tensor(output)
+        else
+          output.dup
+        end
         prediction = @model.argmax(input, output, opts)
         break if @model.target_vocab.itos[prediction[i]] == '<eos>'
         puts "prediction", prediction.inspect
