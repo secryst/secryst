@@ -98,10 +98,13 @@ module Secryst
         raise RuntimeError, "the batch number of src and tgt must be equal"
       end
 
+      puts "tgt1", tgt.inspect
+
       memory = @encoder.call(src, mask: src_mask, src_key_padding_mask: src_key_padding_mask)
       output = @decoder.call(tgt, memory, tgt_mask: tgt_mask, memory_mask: memory_mask,
                             tgt_key_padding_mask: tgt_key_padding_mask,
                             memory_key_padding_mask: memory_key_padding_mask)
+      puts "tgt2", tgt.inspect
       output = @linear.call(output)
       output = @softmax.call(output)
 
@@ -259,14 +262,16 @@ module Secryst
               memory_key_padding_mask: nil)
 
       output = @embedding.call(tgt) * Math.sqrt(@d_model)
+      puts "tgt3", tgt.inspect
       output = @pos_encoder.call(output)
-
+      puts "tgt4", tgt.inspect
       @layers.each { |mod|
         output = mod.call(output, memory, tgt_mask: tgt_mask,
                        memory_mask: memory_mask,
                        tgt_key_padding_mask: tgt_key_padding_mask,
                        memory_key_padding_mask: memory_key_padding_mask)
       }
+      puts "tgt5", tgt.inspect
 
       if @norm
         output = @norm.call(output)
