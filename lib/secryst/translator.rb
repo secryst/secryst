@@ -35,10 +35,14 @@ module Secryst
         }
         prediction = @model.argmax(input, output, opts)
         break if @model.target_vocab.itos[prediction[i]] == '<eos>'
+        puts "prediction", prediction.inspect
+        puts "before .numo", output.inspect
         if defined?(Torch)
           output = output.numo
         end
+        puts "after .numo", output.inspect
         output = Numo::NArray.concatenate([output, Numo::NArray[[prediction[i]]]])
+        puts "after concat", output.inspect
       end
 
       "#{output[1..-1].to_a.flatten.map {|i| @model.target_vocab.itos[i]}.join('')}"
