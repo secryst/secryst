@@ -41,6 +41,7 @@ module Secryst
         else
           output.dup
         end
+        puts "dup0", dupped_output.inspect
         prediction = @model.argmax(input, dupped_output, opts)
         break if @model.target_vocab.itos[prediction[i]] == '<eos>'
         puts "prediction", prediction.inspect
