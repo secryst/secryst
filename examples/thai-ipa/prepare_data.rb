@@ -1,3 +1,5 @@
+require 'fileutils'
+
 lines = File.readlines('./data/wiktionary-11-2-2020.tsv')
 FileUtils.rm_rf('./data/input.csv')
 FileUtils.rm_rf('./data/target.csv')
