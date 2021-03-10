@@ -21,7 +21,7 @@ module Secryst
           tgt_key_padding_mask: tgt_key_padding_mask,
           memory_key_padding_mask: src_key_padding_mask,
         }
-        prediction = @model.argmax(input, output, opts)
+        prediction = @model.argmax(input, output, **opts)
         break if @model.target_vocab.itos[prediction[i]] == '<eos>'
         output = Torch.cat([output, Torch.tensor([[prediction[i]]])])
       end

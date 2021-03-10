@@ -19,7 +19,7 @@ class SecrystTrainerCli < Thor
   method_option :lr, :desc => "Learning rate", :type => :numeric, :default => 0.1
 
   def train
-    trainer = Secryst::Trainer.new({
+    trainer = Secryst::Trainer.new(
       model: options[:model],
       batch_size: options[:batch_size].to_i,
       lr: options[:lr].to_f,
@@ -32,7 +32,7 @@ class SecrystTrainerCli < Thor
       scheduler_step_size: options[:scheduler_step_size].to_i,
       gamma: options[:gamma].to_f,
       hyperparameters: Secryst::DEFAULT_HYPERPARAMETERS.merge(options[:hyperparameters].transform_keys(&:to_sym).transform_values {|v| v.include?('.') ? v.to_f : v.match(/^\d+$/) ? v.to_i : v.to_s})
-    })
+    )
 
     trainer.train
   end
