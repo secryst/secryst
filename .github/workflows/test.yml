@@ -81,7 +81,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyyaml
           pip install torch==1.7.1+cpu -f https://download.pytorch.org/whl/torch_stable.html
-          pip install ort-nightly==1.6.0 -i https://test.pypi.org/simple/
+          pip install flatbuffers
+          pip install ort-nightly -i https://test.pypi.org/simple/
 
       - name: Install python dependencies
         if: matrix.os == 'macos-latest'
@@ -89,7 +90,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyyaml
           pip install torch==1.7.1 -f https://download.pytorch.org/whl/torch_stable.html
-          pip install ort-nightly==1.6.0 -i https://test.pypi.org/simple/
+          pip install flatbuffers
+          pip install ort-nightly -i https://test.pypi.org/simple/
 
       - name: Install bundler and bundle config
         if: matrix.os == 'ubuntu-latest'
