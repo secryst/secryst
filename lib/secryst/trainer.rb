@@ -29,15 +29,17 @@ module Secryst
       @checkpoint_every = checkpoint_every
       @checkpoint_dir = checkpoint_dir
       FileUtils.mkdir_p(@checkpoint_dir)
-      last_checkpoint = Dir[File.join(@checkpoint_dir, '*')].sort_by {|n| n.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i }.last
-      puts "Starting from checkpoint #{last_checkpoint}" if last_checkpoint 
+      last_checkpoint = Dir[File.join(@checkpoint_dir, '*')].map {|n| [n, n.scan(/checkpoint-([0-9]+)/)&.first&.first&.to_i] }
+                                                            .select(&:last)
+                                                            .sort_by(&:last).last&.first
+      puts "Starting from checkpoint #{last_checkpoint}" if last_checkpoint
       @initial_epoch = last_checkpoint ? last_checkpoint.scan(/checkpoint-([0-9]+)/)&.first&.first.to_i + 1 : 0
       generate_vocabs_and_data
 
-      @hyperparameters = hyperparameters.merge({
+      @hyperparameters = hyperparameters.merge(
         input_vocab_size: @input_vocab.length,
         target_vocab_size: @target_vocab.length,
-      })
+      )
 
       save_vocabs
       save_metadata
@@ -47,7 +49,7 @@ module Secryst
         if last_checkpoint
           @model = Model.from_file(last_checkpoint)
         else
-          @model = Secryst::Transformer.new(@hyperparameters)
+          @model = Secryst::Transformer.new(**@hyperparameters)
         end
       else
         raise ArgumentError, 'Only transformer model is currently supported'
@@ -89,7 +91,7 @@ module Secryst
             tgt_key_padding_mask: tgt_key_padding_mask,
             memory_key_padding_mask: src_key_padding_mask,
           }
-          output = @model.call(inputs, decoder_inputs, opts)
+          output = @model.call(inputs, decoder_inputs, **opts)
           loss = criterion.call(output.transpose(0,1).reshape(-1, ntokens), targets.t.view(-1))
           loss.backward
           ClipGradNorm.clip_grad_norm(@model.parameters, max_norm: 0.5)

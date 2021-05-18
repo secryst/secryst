@@ -34,7 +34,7 @@ module Secryst
           memory_key_padding_mask: src_key_padding_mask,
         }
 
-        # We are cloning the output tensor because of weird bug 
+        # We are cloning the output tensor because of weird bug
         # that it is being mutated https://github.com/secryst/secryst/pull/34#issuecomment-769935874
         dupped_output = if defined?(Torch)
           Torch.tensor(output)
@@ -42,7 +42,7 @@ module Secryst
           output.dup
         end
         puts "dup0", dupped_output.inspect
-        prediction = @model.argmax(input, dupped_output, opts)
+        prediction = @model.argmax(input, dupped_output, **opts)
         break if @model.target_vocab.itos[prediction[i]] == '<eos>'
         puts "prediction", prediction.inspect
         puts "before .numo", output.inspect

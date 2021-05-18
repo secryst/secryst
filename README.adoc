@@ -114,6 +114,26 @@ $ bundle install
 ----
 
 
+On Fedora:
+
+[source,sh]
+----
+$ sudo dnf -y install ruby-devel gsl-devel fftw-devel rubygem-bundler unzip \
+  automake make gcc gcc-c++
+$ git clone --recurse-submodules --depth=5 -b release/1.7 https://github.com/pytorch/pytorch.git
+$ pushd pytorch
+$ python setup.py install
+$ popd
+$ TORCH_DIR=$HOME/.local/lib/python3.9/site-packages/torch # Ensure this dir exists
+$ ln -s lib $TORCH_DIR/lib64
+
+$ bundle config build.torch-rb \
+    --with-torch-dir=$TORCH_DIR
+
+$ bundle install
+----
+
+
 On macOS:
 
 [source,sh]

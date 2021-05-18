@@ -9,6 +9,9 @@ module Secryst
 
     def self.from_file(model_file)
       model_name, model, metadata, model_state_dict, vocabs, input_vocab, target_vocab = nil
+      # Locate the model name
+      model_file = Provisioning.locate(model_file)
+
       # Unzip model in memory
       Zip::File.open(model_file) do |zip_file|
         metadata = zip_file.glob('metadata.yaml').first
@@ -43,7 +46,7 @@ module Secryst
 
         model_name = metadata.delete("name")
         if model_name == 'transformer'
-          model = Secryst::Transformer.new({
+          model = Secryst::Transformer.new(
             d_model: metadata[:d_model],
             nhead: metadata[:nhead],
             num_encoder_layers: metadata[:num_encoder_layers],
@@ -53,7 +56,7 @@ module Secryst
             activation: metadata[:activation],
             input_vocab_size: input_vocab.length,
             target_vocab_size: target_vocab.length,
-          })
+          )
         else
           raise ArgumentError, 'Only transformer model is currently supported'
         end
@@ -68,16 +71,16 @@ module Secryst
 
     end
 
-    def call(*args)
-      @model.call(*args)
+    def call(*args, **kwargs)
+      @model.call(*args, **kwargs)
     end
 
-    def argmax(*args)
-      self.call(*args).map {|i| i.argmax.item }
+    def argmax(*args, **kwargs)
+      self.call(*args, **kwargs).map {|i| i.argmax.item }
     end
 
-    def method_missing(name, *args, &block)
-      @model.public_send(name, *args, &block)
+    def method_missing(name, *args, **kwargs, &block)
+      @model.public_send(name, *args, **kwargs, &block)
     end
 
     class Onnx < Model

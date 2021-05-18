@@ -8,14 +8,17 @@ class SecrystCli < Thor
     true
   end
   desc "translate", "Translate input sequence using specified model"
+  method_option :source, :aliases => "-s", :desc => "Add a model index to provision the model"
   method_option :input_text, :aliases => "-i", :desc => "String of text to translate"
   method_option :input_text_file, :aliases => "-t", :desc => "Path to file with text to translate"
-  method_option :model_file, :aliases => "-f", :desc => "Specify model checkpoint .zip file", :required => true
+  method_option :model_file, :aliases => "-f", :desc => "Specify model name or a checkpoint .zip file", :required => true
 
   def translate
-    translator = Secryst::Translator.new({
+    Secryst::Provisioning.add_remote(options[:source]) if options[:source]
+
+    translator = Secryst::Translator.new(
       model_file: options[:model_file],
-    })
+    )
 
     if options[:input_text]
       puts translator.translate(options[:input_text])
@@ -24,6 +27,15 @@ class SecrystCli < Thor
         puts translator.translate(line)
       end
     end
+  end
+
+  desc "install <name>", "Installs a model locally"
+  method_option :source, :aliases => "-s", :desc => "Add a model index to provision the model"
+
+  def install(name)
+    Secryst::Provisioning.add_remote(options[:source]) if options[:source]
+
+    Secryst::Provisioning.locate(name)
   end
 end
 

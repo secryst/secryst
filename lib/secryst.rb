@@ -15,6 +15,8 @@ require "secryst/vocab"
 require "secryst/translator"
 require "secryst/model"
 
+require "secryst/provisioning"
+
 require 'onnxruntime'
 
 module Secryst
