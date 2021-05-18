@@ -262,7 +262,7 @@ module Secryst
               memory_key_padding_mask: nil)
 
       output = @embedding.call(tgt) * Math.sqrt(@d_model)
-      puts "tgt3", tgt.inspect
+      puts "tgt3_", tgt.inspect
       output = @pos_encoder.call(output)
       puts "tgt4", tgt.inspect
       @layers.each { |mod|
