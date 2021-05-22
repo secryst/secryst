@@ -20,6 +20,7 @@ module Secryst
         vocabs = zip_file.glob('vocabs.yaml').first
         raise 'vocabs.yaml is missing in model zip!' if !vocabs
         vocabs = YAML.load(vocabs.get_input_stream.read)
+        puts vocabs
         input_vocab = Vocab.new(vocabs["input"], specials: [])
         target_vocab = Vocab.new(vocabs["target"], specials: [])
 
@@ -30,6 +31,9 @@ module Secryst
         end
       end
       if model.name.end_with?('.pth')
+        require 'torch'
+        require "secryst/multihead_attention"
+        require "secryst/transformer"
         raise 'metadata.yaml is missing in model zip!' if !metadata
         model_state_dict = Torch.send :to_ruby, Torch._load(model.get_input_stream.read)
         # Python-trained model have other key namess, so we transform
@@ -91,7 +95,9 @@ module Secryst
       end
 
       def argmax(*args)
-        self.call(*args).map {|i| i.flatten.each_with_index.max[1] }
+        self.call(*args).map {|i| 
+          i.flatten.each_with_index.max[1] 
+        }
       end
 
       def predict(args)

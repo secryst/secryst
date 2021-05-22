@@ -1,6 +1,8 @@
 pyyaml
+flatbuffers
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch==1.7.1
--i https://test.pypi.org/simple/
---extra-index-url https://pypi.org/simple
-ort-nightly
+torch==1.8.1; sys_platform == 'darwin'
+torch==1.8.1+cpu; sys_platform == 'linux'
+-i https://pypi.org/simple
+--extra-index-url https://test.pypi.org/simple/
+ort-nightly==1.8.0.dev202105211

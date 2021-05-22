@@ -45,7 +45,7 @@ parser.add_argument("-e", "--max-epochs", type=int,
 parser.add_argument("-l", "--log-interval", type=int,
                     help="Training logging interval", default=10)
 parser.add_argument("-c", "--checkpoint-every", type=int,
-                    help="Save checkpoint every N epochs", default=1)
+                    help="Save checkpoint every N epochs", default=50)
 parser.add_argument("--checkpoint-dir", type=Path,
                     help="Directory where to save checkpoints", default=Path("./checkpoints"))
 parser.add_argument("--scheduler-step-size",
@@ -355,7 +355,7 @@ for epoch in range(initial_epoch, initial_epoch + max_epochs + 1):
       total_loss = 0
       start_time = time.time()
 
-  if epoch > 0 and epoch % checkpoint_every == 0:
+  if (epoch > 0 and epoch % checkpoint_every == 0) or (max_epochs and epoch == (initial_epoch + max_epochs)):
     save_model(epoch)
 
   # Evaluate

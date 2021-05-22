@@ -1,13 +1,16 @@
+Bundler.require(:development)
 require 'yaml'
 require 'zip'
 
-# torch
-require "torch-rb"
+# numo
+require 'numo/narray'
 
 # transformer model
-require "secryst/multihead_attention"
+if defined?(Torch)
+  require "secryst/multihead_attention"
+  require "secryst/transformer"
+end
 require "secryst/vocab"
-require "secryst/transformer"
 
 require "secryst/translator"
 require "secryst/model"

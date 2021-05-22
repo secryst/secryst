@@ -6,7 +6,7 @@ require 'secryst/version'
 Gem::Specification.new do |spec|
   spec.name          = "secryst-trainer"
   spec.version       = Secryst::VERSION
-  spec.summary       = "A seq2seq transformer suited for transliteration. Written in Ruby. Includes packages for training models"
+  spec.summary       = "A seq2seq transformer suited for script conversion. Written in Ruby. Includes packages for training models"
   spec.homepage      = "https://github.com/secryst/secryst"
   spec.license       = "BSD-2-Clause"
 
@@ -21,11 +21,11 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 2.6"
 
-  spec.add_dependency "torch-rb", '~> 0.5'
+  spec.add_dependency "torch-rb", '~> 0.6'
+  # RT: Added 'rice' gem dependency as torch-rb doesn't support rice 4.0 yet
+  spec.add_dependency "rice", '~> 3.0'
   spec.add_dependency "numo", '~> 0.1'
   spec.add_dependency "numo-linalg", '~> 0.1'
-  spec.add_dependency "thor", "~> 1.0"
-  spec.add_dependency "rubyzip", "~> 2.3"
   spec.add_dependency "secryst", Secryst::VERSION
 
   spec.add_development_dependency "rake"

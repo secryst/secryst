@@ -4,6 +4,9 @@ require "thor"
 require "secryst-trainer"
 
 class SecrystTrainerCli < Thor
+  def self.exit_on_failure?
+    true
+  end
   desc "train", "Train the model on dataset"
   method_option :model, :aliases => "-m", :desc => "Model architecture: currently only transformer", :default => 'transformer'
   method_option :data_input, :aliases => "-i", :desc => "Specify file with input sequences", :required => true

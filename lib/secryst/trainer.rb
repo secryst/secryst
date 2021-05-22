@@ -110,7 +110,7 @@ module Secryst
           end
         end
 
-        if epoch > 0 && epoch % @checkpoint_every == 0
+        if (epoch > 0 && epoch % @checkpoint_every == 0) || (@max_epochs && epoch == (@initial_epoch + @max_epochs))
           save_model(epoch)
         end
 

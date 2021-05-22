@@ -4,6 +4,9 @@ require "thor"
 require "secryst"
 
 class SecrystCli < Thor
+  def self.exit_on_failure?
+    true
+  end
   desc "translate", "Translate input sequence using specified model"
   method_option :source, :aliases => "-s", :desc => "Add a model index to provision the model"
   method_option :input_text, :aliases => "-i", :desc => "String of text to translate"
