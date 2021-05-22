@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    name: "Train (Ruby ${{ matrix.ruby }}, Python)/ translate: (${{ matrix.os }})"
+    name: "train, translate (Ruby ${{ matrix.ruby }}, Python, ${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:

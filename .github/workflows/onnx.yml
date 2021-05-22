@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     # if: "!contains(github.event.commits[0].message, '[skip ci]')"
-    name: "Translate ONNX (Ruby ${{ matrix.ruby }}): (${{ matrix.os }})"
+    name: "translate (ONNX, Ruby ${{ matrix.ruby }}, ${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
