@@ -1,4 +1,4 @@
-name: test 
+name: test
 
 on:
   push:
@@ -17,7 +17,6 @@ jobs:
         # windows-latest
         ruby: ['2.6', '2.7']
         experimental: [false]
-        include:
 
     steps:
       - uses: actions/checkout@master
