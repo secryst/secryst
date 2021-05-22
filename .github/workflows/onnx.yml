@@ -65,5 +65,6 @@ jobs:
         env:
           BUNDLE_GEMFILE: Gemfile-secryst
         run: |
-          echo "Running ONNX import test"
-           bundle exec bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
+          bundle exec bin/secryst translate \
+            --model-file ./examples/onnx-model/model.zip \
+            -t ./examples/onnx-model/texts-ar.txt
