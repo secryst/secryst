@@ -6,8 +6,8 @@ require 'secryst/version'
 Gem::Specification.new do |spec|
   spec.name          = "secryst"
   spec.version       = Secryst::VERSION
-  spec.summary       = "Seq2seq transformer for transliteration in Ruby."
-  spec.description   = %q{Seq2seq transformer for transliteration in Ruby.}
+  spec.summary       = "Seq2seq transformer for script conversion in Ruby."
+  spec.description   = %q{Seq2seq transformer for script conversion in Ruby.}
   spec.homepage      = "https://github.com/secryst/secryst"
   spec.license       = "BSD-2-Clause"
 
@@ -23,7 +23,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "thor", "~> 1.0"
   spec.add_dependency "numo-narray", "~> 0.9"
-  spec.add_dependency "onnxruntime", "~> 0.5"
+  spec.add_dependency "onnxruntime", "~> 0.6"
   spec.add_dependency "rubyzip", "~> 2.3"
 
   spec.add_development_dependency "rake"

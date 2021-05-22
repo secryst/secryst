@@ -1,4 +1,4 @@
-name: ONNX-only test
+name: onnx
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     # if: "!contains(github.event.commits[0].message, '[skip ci]')"
-    name: Run specs on ${{ matrix.os }} ruby ${{ matrix.ruby }}
+    name: "Translate ONNX (Ruby ${{ matrix.ruby }}): (${{ matrix.os }})"
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.experimental }}
     strategy:
@@ -56,10 +56,14 @@ jobs:
       - name: Install dependencies
         # bundle config deployment true
         # bundle config path vendor/bundle
+        env:
+          BUNDLE_GEMFILE: Gemfile-secryst
         run: |
-          BUNDLE_GEMFILE=Gemfile-secryst bundle install
+          bundle install
 
       - name: Test ONNX translation
+        env:
+          BUNDLE_GEMFILE: Gemfile-secryst
         run: |
           echo "Running ONNX import test"
-          BUNDLE_GEMFILE=Gemfile-secryst bundle exec bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
+           bundle exec bin/secryst translate --model-file ./examples/onnx-model/model.zip -t ./examples/onnx-model/texts-ar.txt
