@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.bindir        = "bin"
   spec.executables   << "secryst"
 
-  spec.required_ruby_version = ">= 2.6"
+  spec.required_ruby_version = ">= 2.7"
 
   spec.add_dependency "thor", "~> 1.0"
   spec.add_dependency "numo-narray", "~> 0.9"

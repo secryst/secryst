@@ -19,7 +19,7 @@ Gem::Specification.new do |spec|
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.executables   << "secryst-trainer"
 
-  spec.required_ruby_version = ">= 2.6"
+  spec.required_ruby_version = ">= 2.7"
 
   spec.add_dependency "torch-rb", '~> 0.6'
   # RT: Added 'rice' gem dependency as torch-rb doesn't support rice 4.0 yet
