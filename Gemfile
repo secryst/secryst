@@ -1,5 +1,5 @@
 source 'https://rubygems.org'
 
-gemspec name: 'secryst-trainer'
+gemspec name: 'secryst'
 
 gem 'byebug', group: :development
