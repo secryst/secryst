@@ -1,0 +1,75 @@
+# secryst_thai_ipa — supervised Thai → IPA G2P (Tier 1, v0.5.0).
+#
+# v0.5.0 changes vs v0.1.0:
+#   - cross_attn_lr_mult: 3.0 (escape mode collapse)
+#   - scheduled_sampling_final: 0.3 (exposure bias fix)
+#   - memory_dropout: 0.1 (regularize encoder memory)
+#   - qk_clip_tau_init: 4.0 (tighter bound)
+#
+# Encoder-decoder Transformer with the K3/DS4 modern stack:
+#   - RoPE + SDPA (Flash)
+#   - mHC (Manifold-Constrained Hyper-Connections, DS4) — log-domain stable
+#   - AttnRes (Attention Residuals, K3)
+#   - RMSNorm + SwiGLU
+#   - Muon optimizer + QK-Clip
+#
+# Target ~25M params, single-A100, ~3h for 30 epochs on ~10K pairs.
+# Acceptance v0.5.0: PER ≤ 5% on Wiktionary test split (no mode collapse).
+
+name: secryst_thai_ipa
+description: Thai → IPA G2P (secryst v0.5.0, K3/DS4 modern stack with mode-collapse fixes).
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: modern_seq2seq
+  dim: 256
+  enc_layers: 6
+  dec_layers: 6
+  heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  max_len: 128
+  batch_size: 64
+  # v0.5.0: regularize encoder memory to prevent mode collapse.
+  memory_dropout: 0.1
+  # v0.6.0: bypass mHC for cross-attn (use standard residual).
+  # Forces cross-attn output to contribute to x directly. mHC's SK
+  # normalization was collapsing to identity, causing mode collapse
+  # where decoder ignored encoder memory.
+  use_mhc_cross: false
+
+train:
+  epochs: 30
+  batch_size: 64
+  learning_rate: 3.0e-4
+  weight_decay: 0.01
+  warmup_steps: 500
+  grad_clip: 1.0
+  fp16: true
+  label_smoothing: 0.1
+  init_from_pretrain: null
+  optimizer: muon
+  muon_lr: 0.02
+  muon_momentum: 0.95
+  ns_steps: 5
+  scheduler: cosine
+  # QK-Clip (Kimi K2 MuonClip recipe). Tighter tau for v0.5.0.
+  qk_clip_every: 50
+  qk_clip_tau_init: 4.0
+  qk_clip_tau_final: 1.0
+  # v0.5.0: cross-attention gets 3x LR to escape mode collapse.
+  cross_attn_lr_mult: 3.0
+  # v0.5.0: scheduled sampling — feed model's own predictions with
+  # increasing probability. Linearly anneal 0 → 0.3 over training.
+  scheduled_sampling_final: 0.3
+  scheduled_sampling_decay: linear
+
+eval:
+  v0.1.0_max_per: 0.08
+  v0.5.0_max_per: 0.05
+  v1.0.0_max_per: 0.03

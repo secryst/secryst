@@ -1,0 +1,32 @@
+# secryst_thai_ipa_umt5_v3 — umt5 fine-tuning on EXPANDED Thai data.
+#
+# Data expanded from 9.7K → 23.4K pairs (2.4× more).
+# Sources: Kaikki + pythainlp/thai-g2p-v4 + B-K/thai-g2p
+# Same strategy: continued fine-tuning of umt5-thai-g2p with LR=5e-5.
+
+name: secryst_thai_ipa_umt5_v3
+description: Thai → IPA via umt5 fine-tuning on expanded 23K corpus
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa-expanded
+
+model:
+  arch: byt5_thai
+  model_name: B-K/umt5-thai-g2p-v2-0.5k
+  max_len: 256
+
+train:
+  epochs: 10
+  batch_size: 16
+  learning_rate: 5.0e-5
+  weight_decay: 0.01
+  warmup_steps: 100
+  grad_clip: 1.0
+  label_smoothing: 0.0
+
+eval:
+  v0.6.0_max_per: 0.03
+  v1.0.0_max_per: 0.02

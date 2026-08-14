@@ -1,0 +1,75 @@
+# secryst_thai_ipa_resformer — Thai → IPA G2P + ResFormer + 2026 Muon variants.
+#
+# Built on secryst_thai_ipa (v0.5.0 baseline) + adds:
+#   - ResFormer (arXiv:2410.17897): value residual V_n = λ_1·V_1 + λ_2·V_n.
+#     Sparse mode: last 2 of 6 encoder layers receive V_1 with λ_1=5.0.
+#     Encoder-only — decoder doesn't have a meaningful V_1 (different sequence).
+#   - Spectral Cap Muon (2026): NaN explosion prevention (relevant for our
+#     Thai-IPA history of router instability).
+#   - HTMuon (arXiv:2603.10067): heavy-tail correction. Thai-IPA dataset
+#     is small (~10K pairs); HTMuon helps generalization.
+#   - AdaMuon (arXiv:2507.11005): second-moment estimator.
+#   - NorMuon (arXiv:2510.05491): neuron-wise adaptive scaling.
+#
+# Saves to /checkpoints/secryst_thai_ipa_resformer/ for A/B vs baseline.
+
+name: secryst_thai_ipa_resformer
+description: Thai → IPA G2P + ResFormer + 2026 Muon variants (A/B variant).
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: modern_seq2seq
+  dim: 256
+  enc_layers: 6
+  dec_layers: 6
+  heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  max_len: 128
+  batch_size: 64
+  memory_dropout: 0.1
+  use_mhc_cross: false
+  # ---- ResFormer (arXiv:2410.17897, ACL 2025) ----
+  # Sparse mode: only last 2 encoder layers receive V_1, λ_1=5.0.
+  resformer:
+    mode: sparse
+    n_last_layers: 2
+    lambda1: 5.0
+    lambda2: 1.0
+
+train:
+  epochs: 30
+  batch_size: 64
+  learning_rate: 3.0e-4
+  weight_decay: 0.01
+  warmup_steps: 500
+  grad_clip: 1.0
+  fp16: true
+  label_smoothing: 0.1
+  init_from_pretrain: null
+  optimizer: muon
+  muon_lr: 0.02
+  muon_momentum: 0.95
+  ns_steps: 5
+  scheduler: cosine
+  qk_clip_every: 50
+  qk_clip_tau_init: 4.0
+  qk_clip_tau_final: 1.0
+  cross_attn_lr_mult: 3.0
+  scheduled_sampling_final: 0.3
+  scheduled_sampling_decay: linear
+  # ---- 2026 Muon variants ----
+  spectral_cap: 1.2
+  heavy_tail_alpha: 0.05
+  adamuon_beta: 0.99
+  normuon_enabled: true
+
+eval:
+  v0.1.0_max_per: 0.08
+  v0.5.0_max_per: 0.05
+  v1.0.0_max_per: 0.03

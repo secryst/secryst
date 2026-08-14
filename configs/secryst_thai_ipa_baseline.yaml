@@ -1,0 +1,58 @@
+# secryst_thai_ipa_baseline — plain AdamW + standard Transformer.
+#
+# Fallback config to test if the modern K3/DS4 stack is the root cause of
+# secryst's persistent mode collapse. Disables:
+#   - Muon optimizer (uses AdamW)
+#   - QK-Clip
+#   - mHC cross-attn bypass
+#   - scheduled sampling (keep teacher forcing throughout)
+#   - memory dropout
+#
+# If this still mode-collapses, the problem is data or fundamental.
+# If it works, we know the modern stack has a bug.
+#
+# Same architecture (encoder/decoder dimensions) as the modern config.
+
+name: secryst_thai_ipa_baseline
+description: Thai → IPA G2P baseline (plain AdamW + standard residuals, no modern stack).
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: modern_seq2seq
+  dim: 256
+  enc_layers: 6
+  dec_layers: 6
+  heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  max_len: 128
+  batch_size: 64
+  # No memory dropout, no mHC cross bypass — pure modern stack but with
+  # AdamW instead of Muon.
+  use_mhc_cross: false
+
+train:
+  epochs: 30
+  batch_size: 64
+  learning_rate: 1.0e-4   # AdamW standard LR (lower than Muon's effective LR)
+  weight_decay: 0.01
+  warmup_steps: 1000
+  grad_clip: 1.0
+  fp16: true
+  label_smoothing: 0.1
+  init_from_pretrain: null
+  optimizer: adamw        # PLAIN ADAMW — no Muon
+  scheduler: cosine
+  # No QK-Clip (only relevant for Muon).
+  qk_clip_every: 0
+  # No scheduled sampling — keep teacher forcing throughout.
+  scheduled_sampling_final: 0.0
+  # No cross-attn LR boost (only relevant for Muon param groups).
+
+eval:
+  v0.1.0_max_per: 0.30    # Relaxed — baseline goal is "no mode collapse"
