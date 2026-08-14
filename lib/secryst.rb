@@ -1,23 +1,12 @@
-Bundler.require(:development)
 require 'yaml'
 require 'zip'
-
-# numo
 require 'numo/narray'
 
-# transformer model
-if defined?(Torch)
-  require "secryst/multihead_attention"
-  require "secryst/transformer"
-end
-require "secryst/vocab"
-
-require "secryst/translator"
-require "secryst/model"
-
-require "secryst/provisioning"
-
-require 'onnxruntime'
+require 'secryst/vocab'
+require 'secryst/byt5_onnx'
+require 'secryst/translator'
+require 'secryst/model'
+require 'secryst/provisioning'
 
 module Secryst
   DEFAULT_HYPERPARAMETERS = {
@@ -28,5 +17,5 @@ module Secryst
     dim_feedforward: 256,
     dropout: 0.05,
     activation: 'relu',
-  }
+  }.freeze
 end
