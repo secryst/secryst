@@ -42,7 +42,7 @@ def main(ckpt: str, out_zip: str) -> None:
         "/tmp/encoder.onnx",
         input_names=["input_ids"],
         output_names=["last_hidden_state"],
-        dynamic_axes={"input_ids": {0: "batch", 1: "seq"}, "last_hidden_state": {0: "batch", 1: "seq"}},
+        opset_version=14, dynamic_axes={"input_ids": {0: "batch", 1: "seq"}, "last_hidden_state": {0: "batch", 1: "seq"}},
     )
     torch.onnx.export(
         DecoderWithHead(model),
@@ -50,6 +50,7 @@ def main(ckpt: str, out_zip: str) -> None:
         "/tmp/decoder.onnx",
         input_names=["input_ids", "encoder_hidden_states"],
         output_names=["logits"],
+        opset_version=14,
         dynamic_axes={
             "input_ids": {0: "batch", 1: "seq"},
             "encoder_hidden_states": {0: "batch", 1: "seq"},
