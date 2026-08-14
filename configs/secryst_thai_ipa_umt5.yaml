@@ -1,0 +1,35 @@
+# secryst_thai_ipa_umt5 — Thai→IPA G2P via mT5 fine-tuning.
+#
+# umt5-thai-g2p (pre-trained) achieves 6.37% PER on our test set — 2× better
+# than ByT5-small (13.37%). Fine-tuning mT5-small on our 10K Thai-IPA pairs
+# should push toward SOTA (~3-5% PER).
+#
+# mT5's SentencePiece tokenizer handles Thai far better than ByT5's byte-level
+# approach. This is the SOTA architecture for Thai G2P.
+
+name: secryst_thai_ipa_umt5
+description: Thai → IPA G2P via mT5-small fine-tuning
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: byt5_thai  # reuse the ByT5 training pipeline (seq2seq)
+  model_name: google/mt5-small
+  max_len: 256
+
+train:
+  epochs: 30
+  batch_size: 16
+  learning_rate: 3.0e-4
+  weight_decay: 0.01
+  warmup_steps: 200
+  grad_clip: 1.0
+  label_smoothing: 0.1
+
+eval:
+  v0.6.0_max_per: 0.05
+  v1.0.0_max_per: 0.03

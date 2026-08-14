@@ -1,0 +1,46 @@
+# secryst_thai_ipa_ctc_v2 — improved CTC for Thai→IPA G2P.
+#
+# v1 (secryst_thai_ipa_ctc) escaped mode collapse: PER=72.1% vs seq2seq
+# PER>1.0. But 72% PER is still too high. This config improves:
+#   1. Larger model: dim 256→384, layers 8→10
+#   2. Lower LR: 1e-3→5e-4 (CTC is sensitive to LR)
+#   3. More epochs: 50→80 (CTC converges slowly)
+#   4. Higher dropout: 0.1→0.15 (prevent overfitting on small dataset)
+#
+# Target: PER < 0.30 (significant improvement over v1's 0.72).
+
+name: secryst_thai_ipa_ctc_v2
+description: Thai → IPA G2P via improved CTC (larger model, tuned LR).
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: ctc
+  dim: 384
+  layers: 10
+  heads: 8
+  ff_dim: 1536
+  dropout: 0.15
+  max_len: 128
+  batch_size: 64
+
+train:
+  epochs: 80
+  batch_size: 64
+  learning_rate: 5.0e-4
+  weight_decay: 0.01
+  warmup_steps: 500
+  grad_clip: 1.0
+  fp16: true
+  label_smoothing: 0.0
+  init_from_pretrain: null
+  optimizer: adamw
+  scheduler: cosine
+
+eval:
+  v0.6.0_max_per: 0.30
+  v1.0.0_max_per: 0.10

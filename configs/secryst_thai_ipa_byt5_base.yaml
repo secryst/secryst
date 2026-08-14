@@ -1,0 +1,34 @@
+# secryst_thai_ipa_byt5_base — Thai→IPA G2P via ByT5-Base fine-tuning.
+#
+# ByT5-small reached PER=13.5% (86.5% exact match) — massive improvement
+# over CTC (70.4%) and mode-collapsed seq2seq. ByT5-Base (580M, 2x small)
+# should push toward historical SOTA (~5-6% PER).
+#
+# Same one-line change as Hebrew ByT5-Base upgrade. Training ~2x slower.
+
+name: secryst_thai_ipa_byt5_base
+description: Thai → IPA G2P via ByT5-Base fine-tuning
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: byt5_thai
+  model_name: google/byt5-base
+  max_len: 256
+
+train:
+  epochs: 20
+  batch_size: 8
+  learning_rate: 2.0e-4
+  weight_decay: 0.01
+  warmup_steps: 200
+  grad_clip: 1.0
+  label_smoothing: 0.1
+
+eval:
+  v0.6.0_max_per: 0.08
+  v1.0.0_max_per: 0.05

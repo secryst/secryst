@@ -1,0 +1,47 @@
+# secryst_thai_ipa_ctc — CTC objective for Thai→IPA G2P.
+#
+# Alternative to seq2seq. CTC has no decoder → no LM prior can form → no
+# mode collapse. The encoder's per-position output directly determines
+# the target token (via collapse + blank removal).
+#
+# Trade-off: CTC assumes monotonic alignment (input position t maps to
+# output position ≤ t). For G2P this is true.
+#
+# Acceptance: PER < 0.50 on Wiktionary test split (much better than
+# seq2seq's PER > 1.0 from mode collapse).
+
+name: secryst_thai_ipa_ctc
+description: Thai → IPA G2P via CTC (escapes seq2seq mode collapse).
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: ctc
+  dim: 256
+  layers: 8              # encoder-only, more layers than seq2seq (was 6+6)
+  heads: 8
+  ff_dim: 1024
+  dropout: 0.1
+  max_len: 128
+  batch_size: 64
+
+train:
+  epochs: 50             # CTC needs more epochs than seq2seq
+  batch_size: 64
+  learning_rate: 1.0e-3  # CTC benefits from higher LR than seq2seq
+  weight_decay: 0.01
+  warmup_steps: 500
+  grad_clip: 1.0
+  fp16: true
+  label_smoothing: 0.0   # CTC doesn't use label smoothing
+  init_from_pretrain: null
+  optimizer: adamw       # Plain AdamW (Muon + CTC has not been validated)
+  scheduler: cosine
+
+eval:
+  v0.6.0_max_per: 0.50   # First CTC attempt — relaxed goal
+  v1.0.0_max_per: 0.10

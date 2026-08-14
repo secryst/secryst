@@ -1,0 +1,35 @@
+# secryst_thai_ipa_umt5_ft — continued fine-tuning of umt5-thai-g2p.
+#
+# mT5-small from scratch failed (62% PER). The pre-trained umt5-thai-g2p
+# already achieves 6.37% PER with zero training. Continuing to fine-tune
+# on our 10K Thai-IPA pairs (domain adaptation) should push toward SOTA.
+#
+# Key: use LOW learning rate (5e-5, not 3e-4) to avoid catastrophic
+# forgetting of the pre-trained Thai G2P knowledge.
+
+name: secryst_thai_ipa_umt5_ft
+description: Thai → IPA G2P via continued fine-tuning of umt5-thai-g2p
+kind: secryst
+tier: 1
+
+data:
+  cleaner: thai
+  root: /datasets/thai-ipa
+
+model:
+  arch: byt5_thai  # reuse seq2seq pipeline
+  model_name: B-K/umt5-thai-g2p-v2-0.5k
+  max_len: 256
+
+train:
+  epochs: 10
+  batch_size: 16
+  learning_rate: 5.0e-5  # LOW LR to preserve pre-trained knowledge
+  weight_decay: 0.01
+  warmup_steps: 100
+  grad_clip: 1.0
+  label_smoothing: 0.0  # no label smoothing for continued fine-tuning
+
+eval:
+  v0.6.0_max_per: 0.05
+  v1.0.0_max_per: 0.03

@@ -1,0 +1,66 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "secryst"
+version = "0.1.0.dev0"
+description = "Modern Thai→IPA G2P — Modal-native training + ONNX inference (K3/DS4 stack)"
+requires-python = ">=3.11"
+license = { text = "BSD-2-Clause" }
+authors = [{ name = "Ribose Inc.", email = "open.source@ribose.com" }]
+
+dependencies = [
+  "torch>=2.4,<3",
+  "numpy>=1.26,<3",
+  "omegaconf>=2.3,<3",
+  "onnx>=1.17",
+  "onnxruntime>=1.20",
+  "tqdm>=4.66",
+  "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+train = [
+  "transformers>=4.46",
+  "datasets>=3.0",
+  "wandb>=0.18",
+]
+modal = [
+  "modal>=0.71",
+]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.8",
+  "mypy>=1.13",
+]
+
+[project.scripts]
+secryst-pretrain = "secryst.cli:pretrain_main"
+secryst-train = "secryst.cli:train_main"
+secryst-export = "secryst.cli:export_main"
+secryst-evaluate = "secryst.cli:evaluate_main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/secryst"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "RUF"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+exclude = ["build/", "dist/"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+markers = [
+  "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]

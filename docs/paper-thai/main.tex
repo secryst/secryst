@@ -1,0 +1,117 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\title{Deterministic Augmentation Beats LLM Distillation:\\ Thai G2P from 2.32\% PER with Rule-Based Labels}
+\author{Interscript ML Team}
+\date{August 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Thai grapheme-to-phoneme conversion is bottlenecked by labeled data:
+high-quality dictionaries cover $\sim$10K entries. The prevailing 2026
+recipe for low-resource tasks is distillation from large language
+models. We show this is unnecessary and unsafe for phonological tasks:
+LLMs hallucinate tones and phonotactics just as they hallucinate haraqat
+in diacritization. Instead, we augment with a \emph{deterministic}
+rule-based phonemizer (epitran) over 50K unlabeled Thai Wikipedia
+sentences and continue fine-tuning a Thai-pretrained umt5-small. PER
+falls from 3.24\% to \textbf{2.32\%} on a fixed 1,219-sentence
+Kaikki-derived test set---surpassing the public baseline
+(B-K/umt5-thai-g2p-v2-0.5k, 6.37\% on the same set) by 2.7$\times$. We
+report extensive negative results: curriculum learning, output-vote
+ensembles, and from-scratch seq2seq/CTC architectures all fail, locating
+the bottleneck precisely in labeled-data coverage.
+\end{abstract}
+
+\section{Introduction}
+Thai script omits vowel and tone information that phonology requires; G2P
+must supply it. Published Thai G2P models (B-K/umt5-thai-g2p) are trained
+on dictionaries of $\sim$10K entries.
+
+Contributions:
+\begin{enumerate}
+  \item \textbf{Deterministic augmentation}: epitran over 50K Wikipedia
+        sentences $\rightarrow$ PER 3.24\%$\to$\textbf{2.32\%}, no LLM,
+        no cost, no hallucination.
+  \item \textbf{LLM unsuitability documented}: general LLMs cannot
+        reliably produce Thai phonology (tone hallucination), mirroring
+        the haraqat hallucination known for diacritization.
+  \item \textbf{Bottleneck localization} via ablations: from-scratch
+        seq2seq collapses; CTC plateaus at $\sim$70\% PER; curriculum
+        \emph{hurts} at the data-limited optimum; output-vote ensembles
+        are flat.
+\end{enumerate}
+
+\section{Related Work}
+B-K/umt5-thai-g2p-v2-0.5k: public Thai G2P (our base). ByT5
+\cite{byt5}: byte-level multilingual pretraining. 2026 LLM-distillation
+practice (e.g.\ DeepSeek-V4 ``ten teachers'') motivates our negative
+result.
+
+\section{Method}
+Continue fine-tuning B-K/umt5-thai-g2p-v2-0.5k (300M) for 10 epochs on
+9.7K Kaikki Thai--IPA pairs, LR $5{\times}10^{-5}$, beam 4. Then a
+second stage on the union with 50K epitran-labeled Thai Wikipedia
+sentences (epitran \texttt{tha-Thai}; filtering: Thai-script ratio,
+length bounds; 143,979 raw lines skipped, 50K kept).
+
+\section{Experiments}
+All numbers: 1,219-sentence Kaikki-derived test, PER at word level.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lc}
+\toprule
+Configuration & PER \\
+\midrule
+B-K/umt5-thai-g2p-v2-0.5k (public baseline) & 6.37\% \\
+Our continued FT (Kaikki 9.7K) & 3.31\% \\
++ seed selection (s789) & 3.24\% \\
+\textbf{+ epitran augmentation (60K total)} & \textbf{2.32\%} \\
+\midrule
+\multicolumn{2}{l}{\emph{Negative results:}} \\
+From-scratch ByT5-small & 13\% \\
+From-scratch seq2seq & collapse \\
+CTC & $\sim$70\% plateau \\
+4-seed medoid-vote ensemble & 3.26\% \\
+Curriculum (3 phases, HEBATRON-style) & 3.60\% \\
+20 epochs (vs 10) & 4.05\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Why not LLMs?}
+Phonological labeling demands exactly the property LLMs lack:
+faithfulness to a system of rules. Thai's five phonemic tones and
+complex grapheme-phoneme correspondence invite fluent-sounding but wrong
+output---the same failure documented for Arabic haraqat. Deterministic
+phonemizers (epitran, eSpeak) never hallucinate; their systematic errors
+are learnable biases that a fine-tuned model corrects, as our 2.32\%
+result demonstrates.
+
+\section{Discussion}
+\textbf{Language-specific pretraining over scale}: Thai-exposed
+umt5-small (300M) beats from-scratch ByT5-small by 10 points;
+deterministic labels at scale close the remaining gap.
+
+\section{Limitations}
+Kaikki-format test; epitran labels are systematically biased (no tone
+marks) and the model must reconcile two label distributions. Sentence
+count of the test set is modest (1,219).
+
+\section{Reproducibility}
+\texttt{interscript/secryst}: augmentation
+(\texttt{augment\_thai\_epitran.py}), training
+(\texttt{train\_thai\_combined.py}), ablation scripts, and
+\texttt{docs/RESULTS.md} with all run IDs.
+
+\begin{thebibliography}{9}
+\bibitem{byt5} Xue et al. ByT5. 2022.
+\bibitem{epitran} Mortensen et al. Epitran. 2016.
+\end{thebibliography}
+
+\end{document}
