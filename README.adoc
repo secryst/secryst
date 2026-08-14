@@ -1,3 +1,42 @@
+== secryst 1.0 — modernized
+
+Secryst transliterates text using neural sequence-to-sequence models,
+with training in Python (PyTorch + HuggingFace) and inference in pure
+Ruby via https://github.com/secryst/onnxruntime[secryst/onnxruntime] —
+no libtorch, no native compilation.
+
+=== New in 1.0
+
+- *Byte-level models (ByT5 family)*: model zips now contain
+  `encoder.onnx` + `decoder.onnx` + `metadata.yaml` (`name: byt5`).
+  The tokenizer is UTF-8 bytes themselves (pad=0, EOS=1) — no vocab
+  files.
+- *Modern training stack*: ByT5/umt5 fine-tuning, Muon optimizer
+  variants, CTC/curriculum ablations, Modal pipelines (see `src/`,
+  `train_*.py`, `docs/RESULTS.md`).
+- *Legacy single-file ONNX zips* (vocabs.yaml based) still load.
+- The old Ruby trainer and libtorch/TorchScript path are removed —
+  training lives in Python now.
+
+=== Export a trained checkpoint
+
+....
+python scripts/export_onnx_byt5.py <hf_checkpoint_dir> khm-latn-byt5.zip
+....
+
+=== Use from Ruby
+
+....
+translator = Secryst::Translator.new(model_file: 'khm-latn-byt5.zip')
+translator.translate('ភាសាខ្មែរ')
+....
+
+=== CLI
+
+....
+secryst translate -f khm-latn-byt5.zip -i 'ភាសាខ្មែរ'
+secryst install <model-name>   # via Secrystfile remotes
+....
 = Secryst
 
 image:https://github.com/secryst/secryst/workflows/test/badge.svg["Build status", link="https://github.com/secryst/secryst/actions?workflow=test"]
