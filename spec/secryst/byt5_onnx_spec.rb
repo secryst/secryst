@@ -3,8 +3,8 @@ require 'secryst/byt5_onnx'
 
 RSpec.describe Secryst::Byt5Onnx do
   it 'uses the ByT5 byte conventions' do
-    expect(Secryst::Byt5Onnx::PAD_ID).to eq(0)
-    expect(Secryst::Byt5Onnx::EOS_ID).to eq(1)
+    expect(Secryst::IMF::PAD_ID).to eq(0)
+    expect(Secryst::IMF::EOS_ID).to eq(1)
   end
 
   describe 'byte round-trip (as used for generated output)' do

@@ -3,6 +3,7 @@ require 'zip'
 require 'numo/narray'
 
 require 'secryst/vocab'
+require 'secryst/imf'
 require 'secryst/byt5_onnx'
 require 'secryst/translator'
 require 'secryst/model'
