@@ -3,11 +3,18 @@ module Secryst
     attr_accessor :model, :input_vocab, :target_vocab
 
     def self.from_file(model_file)
+      # A models.yaml model id resolves (download -> verify -> cache)
+      # through the same contract as the Python/TS runtimes.
+      model_file = IMF.resolve(model_file) unless model_file.to_s.end_with?('.zip') || File.file?(model_file.to_s)
       model_file = Provisioning.locate(model_file)
 
       Zip::File.open(model_file) do |zip_file|
         metadata = zip_file.glob('metadata.yaml').first
         metadata = YAML.safe_load(metadata.get_input_stream.read) if metadata
+
+        # IMF v1: the Interscript Model Format zip.
+        return Byt5Onnx.new(model_file) if metadata && metadata['format'] == 'imf-v1'
+
         name = metadata && metadata['name']
 
         # Modern byte-level seq2seq (ByT5 family): encoder.onnx + decoder.onnx.
