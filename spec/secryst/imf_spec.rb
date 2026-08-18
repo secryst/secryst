@@ -106,5 +106,76 @@ RSpec.describe Secryst::IMF do
           .to raise_error(Secryst::IMF::RegistryError, /unknown model id/)
       end
     end
+
+    it 'assembles and verifies split parts (the >2GiB GitHub cap path)' do
+      Dir.mktmpdir do |tmp|
+        channel = File.join(tmp, 'channel')
+        FileUtils.mkdir_p(channel)
+        zip_path = File.expand_path('../fixtures/tiny-imf.zip', __dir__)
+        blob = File.binread(zip_path)
+        part_a, part_b = blob[0, (blob.bytesize / 2 + 3)], blob[(blob.bytesize / 2 + 3)..]
+        File.binwrite(File.join(channel, 'tiny.zip.part-00'), part_a)
+        File.binwrite(File.join(channel, 'tiny.zip.part-01'), part_b)
+        index = File.join(tmp, 'models.yaml')
+        File.write(index, <<~YAML)
+          version: 1
+          models:
+            tiny-1.0:
+              filename: tiny.zip
+              sha256: #{Digest::SHA256.hexdigest(blob)}
+              parts:
+                - url: file://#{channel}/tiny.zip.part-00
+                  sha256: #{Digest::SHA256.hexdigest(part_a)}
+                  size: #{part_a.bytesize}
+                - url: file://#{channel}/tiny.zip.part-01
+                  sha256: #{Digest::SHA256.hexdigest(part_b)}
+                  size: #{part_b.bytesize}
+        YAML
+        cache = File.join(tmp, 'cache')
+        ENV['INTERSCRIPT_ML_CACHE'] = cache
+        begin
+          installed = described_class.resolve('tiny-1.0', index_url: index)
+          expect(File.binread(installed)).to eq(blob)
+          FileUtils.rm_f(File.join(channel, 'tiny.zip.part-00'))
+          expect(described_class.resolve('tiny-1.0', index_url: index)).to eq(installed)
+        ensure
+          ENV.delete('INTERSCRIPT_ML_CACHE')
+        end
+      end
+    end
+
+    it 'rejects a corrupt part by index' do
+      Dir.mktmpdir do |tmp|
+        channel = File.join(tmp, 'channel')
+        FileUtils.mkdir_p(channel)
+        zip_path = File.expand_path('../fixtures/tiny-imf.zip', __dir__)
+        blob = File.binread(zip_path)
+        part_a, part_b = blob[0, 7], blob[7..]
+        File.binwrite(File.join(channel, 'tiny.zip.part-00'), part_a)
+        File.binwrite(File.join(channel, 'tiny.zip.part-01'), part_b)
+        index = File.join(tmp, 'models.yaml')
+        File.write(index, <<~YAML)
+          version: 1
+          models:
+            tiny-1.0:
+              filename: tiny.zip
+              sha256: #{Digest::SHA256.hexdigest(blob)}
+              parts:
+                - url: file://#{channel}/tiny.zip.part-00
+                  sha256: #{"0" * 64}
+                  size: #{part_a.bytesize}
+                - url: file://#{channel}/tiny.zip.part-01
+                  sha256: #{Digest::SHA256.hexdigest(part_b)}
+                  size: #{part_b.bytesize}
+        YAML
+        ENV['INTERSCRIPT_ML_CACHE'] = File.join(tmp, 'cache')
+        begin
+          expect { described_class.resolve('tiny-1.0', index_url: index) }
+            .to raise_error(Secryst::IMF::RegistryError, /part 0 .* sha256 mismatch/)
+        ensure
+          ENV.delete('INTERSCRIPT_ML_CACHE')
+        end
+      end
+    end
   end
 end
