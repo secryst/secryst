@@ -77,6 +77,9 @@ module Secryst
 
       # models.yaml resolution: cache hit (re-verified), or download ->
       # verify whole-file sha256 -> atomic install into the cache.
+      # Entries with `parts` (GitHub's 2 GiB per-asset cap) are streamed
+      # in order, each part sha256-verified as it lands, then the
+      # assembled file is checked against the whole-file sha256.
       def resolve(model_id, index_url: nil)
         source = index_url || ENV["INTERSCRIPT_ML_INDEX"] || DEFAULT_INDEX_URL
         entries = load_index(source)
@@ -90,11 +93,15 @@ module Secryst
 
         FileUtils.mkdir_p(File.dirname(target))
         tmp = target + ".part.#{Process.pid}"
-        channel = entry["url"]
-        if channel.start_with?("file://")
-          FileUtils.cp(channel.sub(%r{\Afile://}, ""), tmp)
+        if entry["parts"]
+          download_parts(entry, tmp)
         else
-          URI.open(channel) { |remote| IO.copy_stream(remote, tmp) }
+          channel = entry["url"]
+          if channel.start_with?("file://")
+            FileUtils.cp(channel.sub(%r{\Afile://}, ""), tmp)
+          else
+            URI.open(channel) { |remote| IO.copy_stream(remote, tmp) }
+          end
         end
         actual = Digest::SHA256.file(tmp).hexdigest
         unless actual == entry["sha256"]
@@ -106,6 +113,32 @@ module Secryst
       end
 
       private
+
+      def download_parts(entry, tmp)
+        File.open(tmp, "wb") do |out|
+          entry["parts"].each_with_index do |part, index|
+            digest = Digest::SHA256.new
+            source = part["url"].start_with?("file://") ? part["url"].sub(%r{\Afile://}, "") : part["url"]
+            open_stream = lambda do |io|
+              while (chunk = io.read(1024 * 1024))
+                out.write(chunk)
+                digest.update(chunk)
+              end
+            end
+            if part["url"].start_with?("file://")
+              File.open(source, "rb", &open_stream)
+            else
+              URI.open(source, "rb", &open_stream)
+            end
+            unless digest.hexdigest == part["sha256"]
+              raise RegistryError, "part #{index} of #{entry["filename"]} sha256 mismatch: got #{digest.hexdigest}, index says #{part["sha256"]}"
+            end
+          end
+        end
+      rescue StandardError
+        File.delete(tmp) if File.file?(tmp)
+        raise
+      end
 
       def load_index(source)
         text = if source.start_with?("http://", "https://")
