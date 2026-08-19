@@ -1,5 +1,16 @@
 == secryst 1.0 — modernized
 
+*Secryst* is coined from *scrying* + *crystal*: gazing into an opaque
+script to reveal its hidden reading — the vowels, phonemes, and word
+boundaries that live in the reader's mind but not on the page. This gem
+is the Ruby crystal of the family (Python: `pip install secryst` at
+https://github.com/secryst/secryst-py[secryst/secryst-py]; TypeScript:
+`@secryst/ml`). All crystals implement the *interscript-ml* contract —
+the `models.yaml` index, IMF v1 model zips, and shared golden sets
+(https://github.com/interscript/ml-models[interscript/ml-models]) — and
+are diffed against each other in CI. Overrides: `SECRYST_INDEX`,
+`SECRYST_CACHE` (default `~/.cache/secryst`).
+
 Secryst transliterates text using neural sequence-to-sequence models,
 with training in Python (PyTorch + HuggingFace) and inference in pure
 Ruby via https://github.com/secryst/onnxruntime[secryst/onnxruntime] —
