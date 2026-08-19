@@ -6,7 +6,7 @@ All numbers from the 2026-08 SOTA campaign.
 
 | Metric | Value | Test set |
 |---|---|---|
-| **PER** | **2.32%** | 1,219 Kaikki Thai test sentences |
+| **PER** | **1.7260%** | 1,219 Kaikki Thai test sentences (scaleup600k, 2026-08-19) |
 
 - Model: umt5-small continued fine-tuning (B-K/umt5-thai-g2p-v2-0.5k base)
 - Data: 9.7K Kaikki + **50K epitran-augmented Thai Wikipedia sentences**
@@ -20,7 +20,8 @@ All numbers from the 2026-08 SOTA campaign.
 | B-K/umt5-thai-g2p-v2-0.5k (HF baseline) | 6.37% | reference |
 | our continued fine-tune (Kaikki 9.7K, 10 ep) | 3.31% | −3.06 |
 | + 4-seed selection (s789) | 3.24% | −0.07 |
-| **+ epitran augmentation (60K total)** | **2.32%** | **−0.92** |
+| **+ epitran augmentation (60K total)** | 2.32% | −0.92 |
+| **+ epitran augmentation 367K (full Wikipedia, 1 ep)** | **1.7260%** | **−0.59** |
 
 ## Ablations (all measured on identical 1,219-example test)
 
