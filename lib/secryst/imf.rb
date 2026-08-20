@@ -15,7 +15,7 @@ module Secryst
     EOS_ID = 1
     UNK_ID = 2
 
-    DEFAULT_INDEX_URL = "https://raw.githubusercontent.com/interscript/ml-models/main/models.yaml"
+    DEFAULT_INDEX_URL = "https://raw.githubusercontent.com/interscript/interscript-ml/main/models.yaml"
 
     class FormatError < StandardError; end
     class RegistryError < StandardError; end

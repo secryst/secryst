@@ -7,7 +7,7 @@ is the Ruby crystal of the family (Python: `pip install secryst` at
 https://github.com/secryst/secryst-py[secryst/secryst-py]; TypeScript:
 `@secryst/ml`). All crystals implement the *interscript-ml* contract —
 the `models.yaml` index, IMF v1 model zips, and shared golden sets
-(https://github.com/interscript/ml-models[interscript/ml-models]) — and
+(https://github.com/interscript/interscript-ml[interscript/interscript-ml]) — and
 are diffed against each other in CI. Overrides: `SECRYST_INDEX`,
 `SECRYST_CACHE` (default `~/.cache/secryst`).
 
