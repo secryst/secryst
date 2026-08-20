@@ -1,6 +1,6 @@
 # 09 — Registry + brand claims, memory updates
 
-- PyPI `secryst`: NOT yet claimed — upload 403 (stale token); artifacts ready in ~/src/secryst/secryst-py/dist/. Needs a fresh PyPI token from the account owner.
+- PyPI `secryst`: LIVE (trusted publishing from secryst-py release.yml; 0.1.1). npm `secryst`: LIVE (0.1.0, bare name).
 - npm org `@secryst` + `secryst (bare npm name)`: BLOCKED on npm auth — needs
   `npm login` (interactive) by user, then `npm org create`/publish from
   secryst-ts (05). Tarball is ready.
