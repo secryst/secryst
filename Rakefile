@@ -12,11 +12,8 @@ task :build do
   FileUtils.mv(Dir['*.gem'], 'pkg')
 end
 
-desc 'Tags version, pushes to remote, and pushes gem'
+desc 'Pushes gem to RubyGems (tag is managed by GitHub Releases)'
 task :release => :build do
-  sh 'git', 'tag', "v#{Secryst::VERSION}"
-  sh "git push origin master"
-  sh "git push origin v#{Secryst::VERSION}"
   sh "ls pkg/*.gem | xargs -n 1 gem push"
 end
 
