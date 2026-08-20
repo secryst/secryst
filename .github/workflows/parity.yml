@@ -1,0 +1,23 @@
+name: parity
+on:
+  push:
+    branches: [master, "feat/**"]
+  pull_request:
+
+jobs:
+  golden-parity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: secryst/secryst-py
+          path: secryst-py
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - name: Run parity spec against reference goldens
+        run: bundle exec rspec spec/parity_spec.rb
+        env:
+          SECRYST_PARITY_DIR: ${{ github.workspace }}/secryst-py/parity
