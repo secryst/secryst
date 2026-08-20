@@ -85,7 +85,7 @@ RSpec.describe Secryst::IMF do
         cache = File.join(tmp, 'cache')
         result = described_class.resolve('tiny-1.0', index_url: index) if false
         # env-based cache (the public API reads ENV at call time)
-        ENV['INTERSCRIPT_ML_CACHE'] = cache
+        ENV['SECRYST_CACHE'] = cache
         begin
           installed = described_class.resolve('tiny-1.0', index_url: index)
           expect(installed).to eq(File.join(cache, 'models', 'tiny-1.0', 'tiny.zip'))
@@ -93,7 +93,7 @@ RSpec.describe Secryst::IMF do
           FileUtils.rm_f(File.join(channel, 'tiny.zip'))
           expect(described_class.resolve('tiny-1.0', index_url: index)).to eq(installed)
         ensure
-          ENV.delete('INTERSCRIPT_ML_CACHE')
+          ENV.delete('SECRYST_CACHE')
         end
       end
     end
@@ -132,14 +132,14 @@ RSpec.describe Secryst::IMF do
                   size: #{part_b.bytesize}
         YAML
         cache = File.join(tmp, 'cache')
-        ENV['INTERSCRIPT_ML_CACHE'] = cache
+        ENV['SECRYST_CACHE'] = cache
         begin
           installed = described_class.resolve('tiny-1.0', index_url: index)
           expect(File.binread(installed)).to eq(blob)
           FileUtils.rm_f(File.join(channel, 'tiny.zip.part-00'))
           expect(described_class.resolve('tiny-1.0', index_url: index)).to eq(installed)
         ensure
-          ENV.delete('INTERSCRIPT_ML_CACHE')
+          ENV.delete('SECRYST_CACHE')
         end
       end
     end
@@ -168,12 +168,12 @@ RSpec.describe Secryst::IMF do
                   sha256: #{Digest::SHA256.hexdigest(part_b)}
                   size: #{part_b.bytesize}
         YAML
-        ENV['INTERSCRIPT_ML_CACHE'] = File.join(tmp, 'cache')
+        ENV['SECRYST_CACHE'] = File.join(tmp, 'cache')
         begin
           expect { described_class.resolve('tiny-1.0', index_url: index) }
             .to raise_error(Secryst::IMF::RegistryError, /part 0 .* sha256 mismatch/)
         ensure
-          ENV.delete('INTERSCRIPT_ML_CACHE')
+          ENV.delete('SECRYST_CACHE')
         end
       end
     end
