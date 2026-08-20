@@ -1,0 +1,20 @@
+name: release
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  rubygems:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+      - run: gem build secryst.gemspec
+      - uses: rubygems/release-gem@v1
