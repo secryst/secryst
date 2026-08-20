@@ -29,9 +29,8 @@ RSpec.describe Secryst::IMF do
 
     it 'decodes a real zip against the shared golden set', :e2e do
       zip = ENV['SECRYST_E2E_ZIP']
-      skip 'set SECRYST_E2E_ZIP to a real IMF zip' unless zip
-      golden = ENV['SECRYST_GOLDEN'] ||
-        '/Users/mulgogi/src/interscript/ml-models/golden/khm-latn-100.jsonl'
+      golden = ENV['SECRYST_GOLDEN']
+      skip 'set SECRYST_E2E_ZIP and SECRYST_GOLDEN for the end-to-end run' unless zip && golden
       translator = Secryst::Translator.new(model_file: zip)
       ok = 0
       total = 0
