@@ -15,7 +15,7 @@ module Secryst
     EOS_ID = 1
     UNK_ID = 2
 
-    DEFAULT_INDEX_URL = "https://raw.githubusercontent.com/interscript/ml-models/main/models.yaml"
+    DEFAULT_INDEX_URL = "https://raw.githubusercontent.com/interscript/interscript-ml/main/models.yaml"
 
     class FormatError < StandardError; end
     class RegistryError < StandardError; end
@@ -72,7 +72,7 @@ module Secryst
       end
 
       def cache_dir
-        ENV["INTERSCRIPT_ML_CACHE"] || File.join(Dir.home, ".cache", "interscript")
+        ENV["SECRYST_CACHE"] || File.join(Dir.home, ".cache", "interscript")
       end
 
       # models.yaml resolution: cache hit (re-verified), or download ->
@@ -81,7 +81,7 @@ module Secryst
       # in order, each part sha256-verified as it lands, then the
       # assembled file is checked against the whole-file sha256.
       def resolve(model_id, index_url: nil)
-        source = index_url || ENV["INTERSCRIPT_ML_INDEX"] || DEFAULT_INDEX_URL
+        source = index_url || ENV["SECRYST_INDEX"] || DEFAULT_INDEX_URL
         entries = load_index(source)
         entry = entries[model_id]
         raise RegistryError, "unknown model id #{model_id.inspect} (known: #{entries.keys.sort})" unless entry
