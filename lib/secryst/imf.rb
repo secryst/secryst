@@ -6,7 +6,7 @@ require "open-uri"
 
 module Secryst
   # Interscript Model Format v1 — the byte-level runtime contract shared
-  # with the Python (interscript-ml) and TypeScript (@interscript/ml)
+  # with the Python (interscript-ml) and TypeScript (npm: secryst)
   # runtimes. Token ids follow the canonical ByT5 table: byte b -> b+3,
   # trailing EOS; pad=0, unk=2. Ids are NOT raw byte values.
   module IMF
