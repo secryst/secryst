@@ -7,4 +7,4 @@
 - Byte-level ByT5 ONNX inference (plain + KV-cache decoder)
 - Cross-crystal golden parity CI vs the Python reference
 - Parts support for artifacts over the GitHub 2 GiB asset cap
-- Training moved out of the gem (lives in interscript-ml-train / secryst training playground)
+- Training moved out of the gem (lives in secryst-train)

@@ -62,7 +62,7 @@ secryst/
 ### 3.6 Release
 - Cut `secryst_thai_ipa-v0.1.0` tag.
 - Upload ONNX + vocab to GitHub Release.
-- Update `ml-models/npm/models/manifest.json`: version `0.1.0`, status `research`.
+- Update `interscript-ml/npm/models/manifest.json`: version `0.1.0`, status `research`.
 
 ## Acceptance
 - [ ] CER ≤ 15% on Wiktionary test split

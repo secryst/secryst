@@ -114,7 +114,7 @@ change needed; secryst is just another `funcall-name` registered at
 runtime.
 
 ### 4.7 End-to-end test
-Add a test vector to `ml-models/tests/test_secryst_thai_ipa.py`:
+Add a test vector to `interscript-ml/tests/test_secryst_thai_ipa.py`:
 ```python
 @pytest.mark.parametrize("thai,expected_ipa", [
     ("ภาษาไทย", "pʰaːsaːtʰaj"),
