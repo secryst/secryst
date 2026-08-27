@@ -15,7 +15,7 @@ module Secryst
     EOS_ID = 1
     UNK_ID = 2
 
-    DEFAULT_INDEX_URL = "https://raw.githubusercontent.com/interscript/interscript-ml/main/models.yaml"
+    DEFAULT_INDEX_URL = "https://github.com/interscript/interscript-ml/releases/download/index-v1/models-index.yaml"
 
     class FormatError < StandardError; end
     class RegistryError < StandardError; end
@@ -142,13 +142,35 @@ module Secryst
 
       def load_index(source)
         text = if source.start_with?("http://", "https://")
-          URI.open(source) { |remote| remote.read }
+          fetch_index_with_sidecar(source)
         else
           File.read(source)
         end
         raw = YAML.safe_load(text, permitted_classes: [], aliases: false)
         raise RegistryError, "index must have version: 1" if raw["version"] != 1
         raw.fetch("models", {})
+      end
+      public :load_index
+
+      # HTTP sources must ship a sibling .sha256 sidecar; verify the
+      # body against it before parsing (GitHub Releases index assets do).
+      def fetch_index_with_sidecar(source)
+        body = URI.open(source, "rb") { |remote| remote.read }
+        sidecar =
+          begin
+            URI.open("#{source}.sha256") { |remote| remote.read }
+          rescue OpenURI::HTTPError => e
+            raise RegistryError, "index sha256 sidecar missing: #{source}.sha256 (#{e.message})"
+          end
+        expected = sidecar.to_s.strip.split(/\s+/).first.to_s
+        unless expected.match?(/\A[0-9a-fA-F]{64}\z/)
+          raise RegistryError, "index sha256 sidecar malformed: #{source}.sha256"
+        end
+        actual = Digest::SHA256.hexdigest(body)
+        unless actual == expected.downcase
+          raise RegistryError, "index sha256 mismatch: got #{actual}, sidecar says #{expected.downcase}"
+        end
+        body.force_encoding(Encoding::UTF_8)
       end
     end
   end

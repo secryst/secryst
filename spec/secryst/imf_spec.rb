@@ -178,3 +178,59 @@ RSpec.describe Secryst::IMF do
     end
   end
 end
+
+  describe "index distribution contract" do
+    it "pins DEFAULT_INDEX_URL to a GitHub Release asset, never raw" do
+      expect(Secryst::IMF::DEFAULT_INDEX_URL).to match(
+        %r{\Ahttps://github\.com/interscript/interscript-ml/releases/download/index-v\d+/models-index\.yaml\z}
+      )
+      expect(Secryst::IMF::DEFAULT_INDEX_URL).not_to include("raw.githubusercontent")
+    end
+
+    it "verifies the .sha256 sidecar on HTTP index fetches" do
+      require "webrick"
+      body = "version: 1\nmodels: {}\n"
+      good = Digest::SHA256.hexdigest(body)
+      bad = "0" * 64
+
+      with_index_server = lambda do |sidecar, &blk|
+        server = WEBrick::HTTPServer.new(Port: 0, AccessLog: [], Logger: WEBrick::Log.new(File::NULL))
+        server.mount_proc "/models-index.yaml" do |_req, res|
+          res["Content-Type"] = "text/yaml"
+          res.body = body
+        end
+        server.mount_proc "/models-index.yaml.sha256" do |_req, res|
+          if sidecar.nil?
+            res.status = 404
+            res.body = "missing"
+          else
+            res["Content-Type"] = "text/plain"
+            res.body = "#{sidecar}  models-index.yaml\n"
+          end
+        end
+        port = server[:Port]
+        server_thread = Thread.new { server.start }
+        begin
+          blk.call("http://127.0.0.1:#{port}/models-index.yaml")
+        ensure
+          server.shutdown
+          server_thread.join(5)
+        end
+      end
+
+      with_index_server.call(good) do |url|
+        entries = Secryst::IMF.load_index(url)
+        expect(entries).to eq({})
+      end
+      with_index_server.call(bad) do |url|
+        expect {
+          Secryst::IMF.load_index(url)
+        }.to raise_error(Secryst::IMF::RegistryError, /index sha256 mismatch/)
+      end
+      with_index_server.call(nil) do |url|
+        expect {
+          Secryst::IMF.load_index(url)
+        }.to raise_error(Secryst::IMF::RegistryError, /index sha256/)
+      end
+    end
+  end
