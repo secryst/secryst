@@ -178,3 +178,67 @@ RSpec.describe Secryst::IMF do
     end
   end
 end
+
+  describe "index distribution contract" do
+    it "pins DEFAULT_INDEX_URL to a GitHub Release asset, never raw" do
+      expect(Secryst::IMF::DEFAULT_INDEX_URL).to match(
+        %r{\Ahttps://github\.com/interscript/interscript-ml/releases/download/index-v\d+/models-index\.yaml\z}
+      )
+      expect(Secryst::IMF::DEFAULT_INDEX_URL).not_to include("raw.githubusercontent")
+    end
+
+    it "verifies the .sha256 sidecar on HTTP index fetches" do
+      require "socket"
+      body = "version: 1\nmodels: {}\n"
+      good = Digest::SHA256.hexdigest(body)
+      bad = "0" * 64
+
+      serve = lambda do |sidecar, &blk|
+        server = TCPServer.new("127.0.0.1", 0)
+        port = server.addr[1]
+        thread = Thread.new do
+          loop do
+            client = server.accept rescue break
+            request = client.readline
+            client.each_line { |line| break if line == "\r\n" }
+            path = request.split(" ")[1]
+            case path
+            when "/models-index.yaml"
+              client.write("HTTP/1.1 200 OK\r\nContent-Length: #{body.bytesize}\r\n\r\n#{body}")
+            when "/models-index.yaml.sha256"
+              if sidecar.nil?
+                client.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
+              else
+                payload = "#{sidecar}  models-index.yaml\n"
+                client.write("HTTP/1.1 200 OK\r\nContent-Length: #{payload.bytesize}\r\n\r\n#{payload}")
+              end
+            else
+              client.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
+            end
+            client.close
+          end
+        end
+        begin
+          blk.call("http://127.0.0.1:#{port}/models-index.yaml")
+        ensure
+          server.close
+          thread.join(5)
+        end
+      end
+
+      serve.call(good) do |url|
+        entries = Secryst::IMF.load_index(url)
+        expect(entries).to eq({})
+      end
+      serve.call(bad) do |url|
+        expect {
+          Secryst::IMF.load_index(url)
+        }.to raise_error(Secryst::IMF::RegistryError, /index sha256 mismatch/)
+      end
+      serve.call(nil) do |url|
+        expect {
+          Secryst::IMF.load_index(url)
+        }.to raise_error(Secryst::IMF::RegistryError, /index sha256/)
+      end
+    end
+  end
