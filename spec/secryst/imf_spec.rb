@@ -188,46 +188,54 @@ end
     end
 
     it "verifies the .sha256 sidecar on HTTP index fetches" do
-      require "webrick"
+      require "socket"
       body = "version: 1\nmodels: {}\n"
       good = Digest::SHA256.hexdigest(body)
       bad = "0" * 64
 
-      with_index_server = lambda do |sidecar, &blk|
-        server = WEBrick::HTTPServer.new(Port: 0, AccessLog: [], Logger: WEBrick::Log.new(File::NULL))
-        server.mount_proc "/models-index.yaml" do |_req, res|
-          res["Content-Type"] = "text/yaml"
-          res.body = body
-        end
-        server.mount_proc "/models-index.yaml.sha256" do |_req, res|
-          if sidecar.nil?
-            res.status = 404
-            res.body = "missing"
-          else
-            res["Content-Type"] = "text/plain"
-            res.body = "#{sidecar}  models-index.yaml\n"
+      serve = lambda do |sidecar, &blk|
+        server = TCPServer.new("127.0.0.1", 0)
+        port = server.addr[1]
+        thread = Thread.new do
+          loop do
+            client = server.accept rescue break
+            request = client.readline
+            client.each_line { |line| break if line == "\r\n" }
+            path = request.split(" ")[1]
+            case path
+            when "/models-index.yaml"
+              client.write("HTTP/1.1 200 OK\r\nContent-Length: #{body.bytesize}\r\n\r\n#{body}")
+            when "/models-index.yaml.sha256"
+              if sidecar.nil?
+                client.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
+              else
+                payload = "#{sidecar}  models-index.yaml\n"
+                client.write("HTTP/1.1 200 OK\r\nContent-Length: #{payload.bytesize}\r\n\r\n#{payload}")
+              end
+            else
+              client.write("HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\n\r\n")
+            end
+            client.close
           end
         end
-        port = server[:Port]
-        server_thread = Thread.new { server.start }
         begin
           blk.call("http://127.0.0.1:#{port}/models-index.yaml")
         ensure
-          server.shutdown
-          server_thread.join(5)
+          server.close
+          thread.join(5)
         end
       end
 
-      with_index_server.call(good) do |url|
+      serve.call(good) do |url|
         entries = Secryst::IMF.load_index(url)
         expect(entries).to eq({})
       end
-      with_index_server.call(bad) do |url|
+      serve.call(bad) do |url|
         expect {
           Secryst::IMF.load_index(url)
         }.to raise_error(Secryst::IMF::RegistryError, /index sha256 mismatch/)
       end
-      with_index_server.call(nil) do |url|
+      serve.call(nil) do |url|
         expect {
           Secryst::IMF.load_index(url)
         }.to raise_error(Secryst::IMF::RegistryError, /index sha256/)
