@@ -15,7 +15,12 @@ or failed to state the dependency directions.
   footer links — PR #122 open against astro-migration
 - gem release prep 1.0.0 (gemspec + trusted publish workflow) — PR #49
 
-## Remaining user actions
+Status: DONE (2026-10-03) — all listed user actions resolved:
+gem 1.0.0 cut (trusted publisher live through 1.1.0); interscript.org
+PR #122 merged; r6 verdict closed long since (r6 2.5793 verified
+2026-08-21, superseded by r7 2.2864 2026-08-28).
+
+## Original remaining user actions
 - Merge interscript.org PR #122 (astro-migration)
 - Register RubyGems trusted publisher for secryst/secryst (workflow release.yml)
 - Cut gem 1.0.0: gh release create v1.0.0 -R secryst/secryst
