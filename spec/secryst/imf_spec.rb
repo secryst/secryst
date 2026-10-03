@@ -180,9 +180,12 @@ RSpec.describe Secryst::IMF do
 end
 
   describe "index distribution contract" do
-    it "pins DEFAULT_INDEX_URL to a GitHub Release asset, never raw" do
-      expect(Secryst::IMF::DEFAULT_INDEX_URL).to match(
-        %r{\Ahttps://github\.com/interscript/interscript-ml/releases/download/index-v\d+/models-index\.yaml\z}
+    it "pins DEFAULT_INDEX_URL to the exact current index release, never raw" do
+      # exact pin (not index-v\d+): the default must resolve every model
+      # the distribution contract has shipped, incl. static-int8 (v6).
+      # Bump this spec WITH the constant, never ahead of it.
+      expect(Secryst::IMF::DEFAULT_INDEX_URL).to eq(
+        "https://github.com/interscript/interscript-ml/releases/download/index-v6/models-index.yaml"
       )
       expect(Secryst::IMF::DEFAULT_INDEX_URL).not_to include("raw.githubusercontent")
     end
